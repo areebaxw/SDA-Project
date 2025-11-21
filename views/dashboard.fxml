@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.DashboardController">
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox style="-fx-background-color: #232F3E;">
+            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 15;">
+                <Label text="AWS Governance Dashboard"
+                       style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+                <!-- Spacer -->
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label fx:id="welcomeLabel" text="Welcome, User"
+                       style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+            </HBox>
+
+            <!-- STATS BAR -->
+            <HBox alignment="CENTER" spacing="30"
+                  style="-fx-padding: 15; -fx-background-color: #37475A;">
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="EC2 Instances" style="-fx-text-fill: #AAB7B8; -fx-font-size: 11px;"/>
+                    <Label fx:id="totalEC2Label" text="0"
+                           style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="RDS Instances" style="-fx-text-fill: #AAB7B8; -fx-font-size: 11px;"/>
+                    <Label fx:id="totalRDSLabel" text="0"
+                           style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="ECS Services" style="-fx-text-fill: #AAB7B8; -fx-font-size: 11px;"/>
+                    <Label fx:id="totalECSLabel" text="0"
+                           style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="SageMaker" style="-fx-text-fill: #AAB7B8; -fx-font-size: 11px;"/>
+                    <Label fx:id="totalSageMakerLabel" text="0"
+                           style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="Active Alerts" style="-fx-text-fill: #F1948A; -fx-font-size: 11px;"/>
+                    <Label fx:id="totalAlertsLabel" text="0"
+                           style="-fx-text-fill: #FF9900; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="Monthly Cost" style="-fx-text-fill: #AAB7B8; -fx-font-size: 11px;"/>
+                    <Label fx:id="costTrendLabel" text="\$0.00"
+                           style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- LEFT SIDEBAR -->
+    <left>
+        <VBox spacing="5"
+              style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-pref-width: 200;">
+
+            <Label text="MONITORING"
+                   style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #666;
+                          -fx-padding: 10 5 5 5;"/>
+
+            <Button text="EC2 Instances" onAction="#handleEC2Monitor" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Button text="RDS Databases" onAction="#handleRDSMonitor" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Button text="ECS Services" onAction="#handleECSMonitor" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Button text="SageMaker" onAction="#handleSageMakerMonitor" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Separator/>
+
+            <Label text="GOVERNANCE"
+                   style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #666;
+                          -fx-padding: 10 5 5 5;"/>
+
+            <Button text="Rules" onAction="#handleRulesManagement" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Button text="Alerts" onAction="#handleAlertsView" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <Separator/>
+
+            <Label text="REPORTS"
+                   style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #666;
+                          -fx-padding: 10 5 5 5;"/>
+
+            <Button text="Billing" onAction="#handleBillingReports" maxWidth="Infinity"
+                    style="-fx-background-color: transparent;
+                           -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
+
+            <!-- Spacer to push Refresh button to bottom -->
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Separator/>
+
+            <Button text="↻ Refresh Dashboard" onAction="#handleRefresh" maxWidth="Infinity"
+                    style="-fx-background-color: #FF9900; -fx-text-fill: white;
+                           -fx-padding: 10; -fx-font-weight: bold;"/>
+
+        </VBox>
+    </left>
+
+    <!-- CENTER CONTENT -->
+    <center>
+        <VBox fx:id="contentArea"
+              style="-fx-background-color: white; -fx-padding: 20;">
+
+            <Label text="Welcome to AWS Cloud Governance Tool"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+            <Label text="Select an option from the sidebar to get started"
+                   style="-fx-font-size: 14px; -fx-text-fill: #666;
+                          -fx-padding: 10 0 0 0;"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,18 @@
+# Sensitive files - DO NOT COMMIT
+*credentials*.sql
+update_aws_credentials.sql
+AWS_SETUP_GUIDE.md
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Build files
+target/
+bin/
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db

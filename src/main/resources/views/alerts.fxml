@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="controllers.AlertController" spacing="15">
+    
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label text="Alerts Management" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <CheckBox fx:id="showResolvedCheckBox" text="Show Resolved" onAction="#handleShowResolvedToggle"/>
+        
+        <Button text="Refresh" onAction="#handleRefresh"
+                style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    </HBox>
+    
+    <Separator/>
+    
+    <!-- Table -->
+    <TableView fx:id="alertTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="resourceIdColumn" text="Resource ID" prefWidth="180"/>
+            <TableColumn fx:id="resourceTypeColumn" text="Type" prefWidth="80"/>
+            <TableColumn fx:id="alertTypeColumn" text="Alert Type" prefWidth="120"/>
+            <TableColumn fx:id="severityColumn" text="Severity" prefWidth="80"/>
+            <TableColumn fx:id="messageColumn" text="Message" prefWidth="300"/>
+            <TableColumn fx:id="createdAtColumn" text="Created At" prefWidth="130"/>
+            <TableColumn fx:id="resolvedColumn" text="Resolved" prefWidth="80"/>
+        </columns>
+    </TableView>
+    
+    <!-- Action Buttons -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Actions:" style="-fx-font-weight: bold;"/>
+        
+        <Button text="Resolve Alert" onAction="#handleResolve"
+                style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        
+        <Button text="Delete Alert" onAction="#handleDelete"
+                style="-fx-background-color: #F44336; -fx-text-fill: white;"/>
+    </HBox>
+</VBox>

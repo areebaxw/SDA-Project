@@ -1,39 +1,59 @@
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
-import database.dbconnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import database.DBConnection;
+import services.AlertService;
+import services.ConsoleAlertObserver;
 
 public class App extends Application {
+
     @Override
-    public void start(Stage stage) {
-        stage.setTitle("JavaFX + MySQL Test");
-        stage.show();
-
-        try (Connection conn = dbconnection.getConnection()) {
-            if (conn != null) {
-                // Insert a test user (only username)
-                String insertSQL = "INSERT INTO users (username) VALUES (?)";
-                try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
-                    pstmt.setString(1, "testuser");
-                    pstmt.executeUpdate();
-                    System.out.println("Inserted test user into database.");
-                }
-
-                // Query the last inserted user
-                String querySQL = "SELECT * FROM users ORDER BY id DESC LIMIT 1";
-                try (PreparedStatement pstmt = conn.prepareStatement(querySQL);
-                     ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        System.out.println("Last user: id=" + rs.getInt("id") +
-                                           ", username=" + rs.getString("username"));
-                    }
-                }
+    public void start(Stage primaryStage) {
+        try {
+            // Test database connection
+            if (DBConnection.testConnection()) {
+                System.out.println("✓ Database connection successful!");
             } else {
-                System.out.println("Connection to MySQL failed.");
+                System.err.println("✗ Failed to connect to database. Check DBConnection configuration.");
             }
+            
+            // Initialize AlertService with observer pattern
+            AlertService alertService = AlertService.getInstance();
+            alertService.registerObserver(new ConsoleAlertObserver());
+            System.out.println("✓ Alert service initialized with console observer");
+            
+            // Load login FXML view
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
+            Parent root = loader.load();
+            
+            // Setup scene and stage
+            Scene scene = new Scene(root, 900, 650);
+            primaryStage.setTitle("AWS Cloud Governance & Resource Monitoring Tool");
+            primaryStage.setScene(scene);
+            primaryStage.setResizable(true);
+            primaryStage.setMinWidth(800);
+            primaryStage.setMinHeight(600);
+            primaryStage.show();
+            
+            System.out.println("✓ Application started successfully!");
+            System.out.println("  Login with: admin / admin123");
+            
         } catch (Exception e) {
+            System.err.println("✗ Error starting application:");
+            e.printStackTrace();
+        }
+    }
+    
+    @Override
+    public void stop() {
+        // Cleanup on application close
+        try {
+            DBConnection.closeConnection();
+            System.out.println("✓ Database connection closed gracefully");
+        } catch (Exception e) {
+            System.err.println("✗ Error during cleanup:");
             e.printStackTrace();
         }
     }
