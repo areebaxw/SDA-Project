@@ -48,42 +48,44 @@
             </HBox>
         </VBox>
         
-        <!-- Right: Create Form -->
-        <VBox spacing="10" style="-fx-padding: 10;">
-            <Label text="Create New Rule" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-            
-            <Label text="Rule Name:"/>
-            <TextField fx:id="ruleNameField" promptText="e.g., Idle EC2 Detection"/>
-            
-            <Label text="Rule Type:"/>
-            <ComboBox fx:id="ruleTypeCombo" promptText="Select type" maxWidth="Infinity"/>
-            
-            <Label text="Resource Type:"/>
-            <ComboBox fx:id="resourceTypeCombo" promptText="Select resource" maxWidth="Infinity"/>
-            
-            <Label text="Action Type:"/>
-            <ComboBox fx:id="actionTypeCombo" promptText="Select action" maxWidth="Infinity"/>
-            
-            <Separator/>
-            
-            <Label text="Condition Settings" style="-fx-font-weight: bold;"/>
-            
-            <Label text="Metric (e.g., CPU):"/>
-            <TextField fx:id="metricField" promptText="CPU"/>
-            
-            <Label text="Operator:"/>
-            <ComboBox fx:id="operatorCombo" promptText="Select operator" maxWidth="Infinity"/>
-            
-            <Label text="Value:"/>
-            <TextField fx:id="valueField" promptText="e.g., 5.0"/>
-            
-            <Label text="Duration (days):"/>
-            <TextField fx:id="durationField" promptText="e.g., 7"/>
-            
-            <Region VBox.vgrow="ALWAYS"/>
-            
-            <Button text="Create Rule" onAction="#handleCreate" maxWidth="Infinity"
-                    style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 35px;"/>
-        </VBox>
+        <!-- Right: Create Form with ScrollPane -->
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Create New Rule" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                
+                <Label text="Rule Name:"/>
+                <TextField fx:id="ruleNameField" promptText="e.g., Idle EC2 Detection"/>
+                
+                <Label text="Rule Type:"/>
+                <ComboBox fx:id="ruleTypeCombo" promptText="Select type" maxWidth="Infinity"/>
+                
+                <Label text="Resource Type:"/>
+                <ComboBox fx:id="resourceTypeCombo" promptText="Select resource" maxWidth="Infinity"/>
+                
+                <Label text="Action Type:"/>
+                <ComboBox fx:id="actionTypeCombo" promptText="Select action" maxWidth="Infinity"/>
+                
+                <Separator/>
+                
+                <Label text="Condition Settings" style="-fx-font-weight: bold;"/>
+                
+                <Label text="Metric (e.g., CPU):"/>
+                <TextField fx:id="metricField" promptText="CPU"/>
+                
+                <Label text="Operator:"/>
+                <ComboBox fx:id="operatorCombo" promptText="Select operator" maxWidth="Infinity"/>
+                
+                <Label text="Value:"/>
+                <TextField fx:id="valueField" promptText="e.g., 5.0"/>
+                
+                <Label text="Duration (days):"/>
+                <TextField fx:id="durationField" promptText="e.g., 7"/>
+                
+                <Region VBox.vgrow="ALWAYS" minHeight="20"/>
+                
+                <Button text="Create Rule" onAction="#handleCreate" maxWidth="Infinity"
+                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 35px;"/>
+            </VBox>
+        </ScrollPane>
     </SplitPane>
 </VBox>
