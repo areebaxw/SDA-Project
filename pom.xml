@@ -89,6 +89,13 @@
             <artifactId>sts</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
+
+        <!-- SLF4J Simple Logger Implementation -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+        </dependency>
     </dependencies>
 
     <build>
