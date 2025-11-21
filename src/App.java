@@ -14,15 +14,15 @@ public class App extends Application {
         try {
             // Test database connection
             if (DBConnection.testConnection()) {
-                System.out.println("✓ Database connection successful!");
+                System.out.println("Database connection successful!");
             } else {
-                System.err.println("✗ Failed to connect to database. Check DBConnection configuration.");
+                System.err.println("Failed to connect to database. Check DBConnection configuration.");
             }
             
             // Initialize AlertService with observer pattern
             AlertService alertService = AlertService.getInstance();
             alertService.registerObserver(new ConsoleAlertObserver());
-            System.out.println("✓ Alert service initialized with console observer");
+            System.out.println("Alert service initialized with console observer");
             
             // Load login FXML view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
@@ -37,11 +37,11 @@ public class App extends Application {
             primaryStage.setMinHeight(600);
             primaryStage.show();
             
-            System.out.println("✓ Application started successfully!");
+            System.out.println("Application started successfully!");
             System.out.println("  Login with: admin / admin123");
             
         } catch (Exception e) {
-            System.err.println("✗ Error starting application:");
+            System.err.println("Error starting application:");
             e.printStackTrace();
         }
     }
@@ -51,9 +51,9 @@ public class App extends Application {
         // Cleanup on application close
         try {
             DBConnection.closeConnection();
-            System.out.println("✓ Database connection closed gracefully");
+            System.out.println("Database connection closed gracefully");
         } catch (Exception e) {
-            System.err.println("✗ Error during cleanup:");
+            System.err.println("Error during cleanup:");
             e.printStackTrace();
         }
     }
