@@ -24,20 +24,22 @@ public class App extends Application {
             alertService.registerObserver(new ConsoleAlertObserver());
             System.out.println("Alert service initialized with console observer");
             
-            // Load login FXML view
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
+            // Load SPLASH SCREEN FXML view instead of login
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/splash.fxml"));
             Parent root = loader.load();
             
             // Setup scene and stage
-            Scene scene = new Scene(root, 900, 650);
+            Scene scene = new Scene(root, 900, 700);
             primaryStage.setTitle("AWS Cloud Governance & Resource Monitoring Tool");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
             primaryStage.setMinWidth(800);
             primaryStage.setMinHeight(600);
+            primaryStage.centerOnScreen();
             primaryStage.show();
             
             System.out.println("Application started successfully!");
+            System.out.println("  Splash screen will display for 5 seconds...");
             System.out.println("  Login with: admin / admin123");
             
         } catch (Exception e) {

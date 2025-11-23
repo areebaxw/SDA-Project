@@ -20,19 +20,37 @@ public class DashboardController {
     private Label welcomeLabel;
     
     @FXML
+    private Label ec2HeaderLabel;
+    
+    @FXML
     private Label totalEC2Label;
+    
+    @FXML
+    private Label rdsHeaderLabel;
     
     @FXML
     private Label totalRDSLabel;
     
     @FXML
+    private Label ecsHeaderLabel;
+    
+    @FXML
     private Label totalECSLabel;
+    
+    @FXML
+    private Label sageMakerHeaderLabel;
     
     @FXML
     private Label totalSageMakerLabel;
     
     @FXML
+    private Label alertsHeaderLabel;
+    
+    @FXML
     private Label totalAlertsLabel;
+    
+    @FXML
+    private Label costHeaderLabel;
     
     @FXML
     private Label costTrendLabel;
@@ -40,12 +58,44 @@ public class DashboardController {
     @FXML
     private VBox contentArea;
     
+    // Button references
+    @FXML
+    private Button ec2Button;
+    
+    @FXML
+    private Button rdsButton;
+    
+    @FXML
+    private Button ecsButton;
+    
+    @FXML
+    private Button sageMakerButton;
+    
+    @FXML
+    private Button rulesButton;
+    
+    @FXML
+    private Button alertsButton;
+    
+    @FXML
+    private Button billingButton;
+    
     private User currentUser;
     private EC2DAO ec2DAO;
     private RDSDAO rdsDAO;
     private ECSDAO ecsDAO;
     private SageMakerDAO sageMakerDAO;
     private AlertService alertService;
+    
+    private Button previousActiveButton;
+    private Label previousActiveHeaderLabel;
+    private Label previousActiveHeaderValue;
+    private static final String ACTIVE_BUTTON_STYLE = "-fx-background-color: #ED7D27; -fx-text-fill: #000000; -fx-font-weight: bold; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 10;";
+    private static final String INACTIVE_BUTTON_STYLE = "-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000; -fx-alignment: CENTER_LEFT; -fx-padding: 10;";
+    private static final String ACTIVE_HEADER_LABEL_STYLE = "-fx-text-fill: #ED7D27; -fx-font-size: 12px;";
+    private static final String INACTIVE_HEADER_LABEL_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 12px;";
+    private static final String ACTIVE_HEADER_VALUE_STYLE = "-fx-text-fill: #ED7D27; -fx-font-size: 24px; -fx-font-weight: bold;";
+    private static final String INACTIVE_HEADER_VALUE_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;";
     
     public DashboardController() {
         this.ec2DAO = new EC2DAO();
@@ -135,38 +185,108 @@ public class DashboardController {
         }
     }
     
+    private void setActiveButton(Button activeButton) {
+        // Reset previous button to inactive style
+        if (previousActiveButton != null) {
+            previousActiveButton.setStyle(INACTIVE_BUTTON_STYLE);
+        }
+        
+        // Set current button to active style
+        activeButton.setStyle(ACTIVE_BUTTON_STYLE);
+        
+        // Update previous button reference
+        previousActiveButton = activeButton;
+    }
+    
+    private void setActiveHeaderLabel(Label activeHeaderLabel, Label activeValueLabel) {
+        // Reset previous header label and value to inactive style
+        if (previousActiveHeaderLabel != null) {
+            previousActiveHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        }
+        if (previousActiveHeaderValue != null) {
+            previousActiveHeaderValue.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        }
+        
+        // Set current labels to active style
+        activeHeaderLabel.setStyle(ACTIVE_HEADER_LABEL_STYLE);
+        activeValueLabel.setStyle(ACTIVE_HEADER_VALUE_STYLE);
+        
+        // Update previous header references
+        previousActiveHeaderLabel = activeHeaderLabel;
+        previousActiveHeaderValue = activeValueLabel;
+    }
+    
+    private void resetAllHeaderLabels() {
+        ec2HeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        totalEC2Label.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        rdsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        totalRDSLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        ecsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        totalECSLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        sageMakerHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        totalSageMakerLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        alertsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        totalAlertsLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        costHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
+        costTrendLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
+        
+        previousActiveHeaderLabel = null;
+        previousActiveHeaderValue = null;
+    }
+    
     @FXML
     private void handleEC2Monitor() {
+        setActiveButton(ec2Button);
+        setActiveHeaderLabel(ec2HeaderLabel, totalEC2Label);
         loadView("/views/ec2.fxml", "EC2 Instances Monitor");
     }
     
     @FXML
     private void handleRDSMonitor() {
+        setActiveButton(rdsButton);
+        setActiveHeaderLabel(rdsHeaderLabel, totalRDSLabel);
         loadView("/views/rds.fxml", "RDS Instances Monitor");
     }
     
     @FXML
     private void handleECSMonitor() {
+        setActiveButton(ecsButton);
+        setActiveHeaderLabel(ecsHeaderLabel, totalECSLabel);
         loadView("/views/ecs.fxml", "ECS Services Monitor");
     }
     
     @FXML
     private void handleSageMakerMonitor() {
+        setActiveButton(sageMakerButton);
+        setActiveHeaderLabel(sageMakerHeaderLabel, totalSageMakerLabel);
         loadView("/views/sagemaker.fxml", "SageMaker Endpoints Monitor");
     }
     
     @FXML
     private void handleBillingReports() {
+        setActiveButton(billingButton);
+        // For Billing, highlight Monthly Cost
+        setActiveHeaderLabel(costHeaderLabel, costTrendLabel);
         loadView("/views/billing.fxml", "Billing Reports");
     }
     
     @FXML
     private void handleRulesManagement() {
+        setActiveButton(rulesButton);
+        // For Rules, reset all labels to white
+        resetAllHeaderLabels();
         loadView("/views/rules.fxml", "Governance Rules");
     }
     
     @FXML
     private void handleAlertsView() {
+        setActiveButton(alertsButton);
+        setActiveHeaderLabel(alertsHeaderLabel, totalAlertsLabel);
         loadView("/views/alerts.fxml", "Alerts Management");
     }
     

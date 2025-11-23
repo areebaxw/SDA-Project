@@ -7,36 +7,36 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="controllers.LoginController" 
-      alignment="CENTER" spacing="20" style="-fx-background-color: #f4f4f4;">
+      alignment="CENTER" spacing="20" style="-fx-background-color: black;">
     
     <padding>
         <Insets top="40" right="40" bottom="40" left="40"/>
     </padding>
     
     <!-- Title -->
-    <Label text="AWS Cloud Governance Tool" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #232F3E;"/>
-    <Label text="Resource Monitoring &amp; Management" style="-fx-font-size: 14px; -fx-text-fill: #666;"/>
+    <Label text="AWS Cloud Governance Tool" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #ED7D27 ;"/>
+    <Label text="Resource Monitoring &amp; Management" style="-fx-font-size: 14px; -fx-text-fill: white;"/>
     
     <Region VBox.vgrow="ALWAYS" minHeight="20"/>
     
     <!-- Login Form -->
     <VBox spacing="15" alignment="CENTER" maxWidth="350">
         
-        <Label text="Login" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Label text="Login" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
         
         <!-- Username Field -->
         <VBox spacing="5">
-            <Label text="Username:" style="-fx-font-weight: bold;"/>
+            <Label text="Username:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
             <TextField fx:id="usernameField" promptText="Enter username" 
-                      style="-fx-pref-width: 300px; -fx-pref-height: 35px;"
+                      style="-fx-pref-width: 300px; -fx-pref-height: 35px; -fx-background-color: #101820; -fx-text-fill: white"
                       onKeyPressed="#handleKeyPressed"/>
         </VBox>
         
         <!-- Password Field -->
         <VBox spacing="5">
-            <Label text="Password:" style="-fx-font-weight: bold;"/>
+            <Label text="Password:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
             <PasswordField fx:id="passwordField" promptText="Enter password" 
-                          style="-fx-pref-width: 300px; -fx-pref-height: 35px;"
+                          style="-fx-pref-width: 300px; -fx-pref-height: 35px; -fx-background-color: #101820; -fx-text-fill: white"
                           onKeyPressed="#handleKeyPressed"/>
         </VBox>
         
@@ -46,7 +46,7 @@
         
         <!-- Login Button -->
         <Button fx:id="loginButton" text="Login" onAction="#handleLogin"
-                style="-fx-background-color: #FF9900; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 300px; -fx-pref-height: 40px; -fx-cursor: hand;"/>
+                style="-fx-background-color: #ED7D27; -fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 300px; -fx-pref-height: 40px; -fx-cursor: hand;"/>
         
         <Separator prefWidth="300"/>
         

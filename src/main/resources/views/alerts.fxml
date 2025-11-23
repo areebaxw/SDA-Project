@@ -13,10 +13,10 @@
     
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="15">
-        <Label text="Alerts Management" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Label text="Alerts Management" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
         <Region HBox.hgrow="ALWAYS"/>
         
-        <CheckBox fx:id="showResolvedCheckBox" text="Show Resolved" onAction="#handleShowResolvedToggle"/>
+        <CheckBox fx:id="showResolvedCheckBox" text="Show Resolved" onAction="#handleShowResolvedToggle" style="-fx-text-fill: #ED7D27;"/>
         
         <Button text="Refresh" onAction="#handleRefresh"
                 style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
@@ -39,7 +39,7 @@
     
     <!-- Action Buttons -->
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Actions:" style="-fx-font-weight: bold;"/>
+        <Label text="Actions:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
         
         <Button text="Resolve Alert" onAction="#handleResolve"
                 style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
