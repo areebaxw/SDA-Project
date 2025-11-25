@@ -296,4 +296,31 @@ public class BillingService {
         }
         return 0.0;
     }
+    
+    /**
+     * Sync billing data from AWS to database
+     * Business logic method that orchestrates: fetch from AWS, save to DB, count results
+     */
+    public int syncFromAWS(LocalDate startDate, LocalDate endDate, int userId) {
+        System.out.println("Syncing billing data from AWS...");
+        
+        dao.BillingDAO billingDAO = new dao.BillingDAO();
+        List<BillingRecord> awsRecords = getCostAndUsage(startDate, endDate, userId);
+        
+        if (awsRecords.isEmpty()) {
+            System.out.println("WARNING: No records returned from AWS Cost Explorer");
+            return 0;
+        }
+        
+        int savedCount = 0;
+        for (BillingRecord record : awsRecords) {
+            System.out.println("Syncing: " + record.getServiceName() + " - $" + String.format("%.6f", record.getCostAmount()));
+            if (billingDAO.upsertBillingRecord(record)) {
+                savedCount++;
+            }
+        }
+        
+        System.out.println("Synced " + savedCount + " billing records from AWS");
+        return savedCount;
+    }
 }

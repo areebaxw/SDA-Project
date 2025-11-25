@@ -102,15 +102,13 @@ public class RDSController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            List<RDSInstance> instances = rdsService.getAllDBInstances();
+            // ✅ FIXED: Delegate ALL sync logic to service
+            // Service handles: fetch from AWS, set user, save to DB
+            int syncedCount = rdsService.syncFromAWS(currentUser.getUserId());
             
-            for (RDSInstance instance : instances) {
-                instance.setUserId(currentUser.getUserId());
-                rdsDAO.saveOrUpdateRDSInstance(instance);
-            }
-            
+            // ✅ CORRECT: Controller only reloads UI
             loadRDSInstances();
-            showInfo("Synced " + instances.size() + " RDS instances from AWS");
+            showInfo("Synced " + syncedCount + " RDS instances from AWS");
         } catch (Exception e) {
             System.err.println("Error syncing RDS instances: " + e.getMessage());
             showError("Error syncing from AWS: " + e.getMessage());

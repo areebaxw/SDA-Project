@@ -177,4 +177,23 @@ public class ECSAWSService {
         }
         return arn;
     }
+    
+    /**
+     * Sync ECS services from AWS to database
+     * Business logic method that orchestrates: fetch from AWS, set user, save to DB
+     */
+    public int syncFromAWS(int userId) {
+        System.out.println("Syncing ECS services from AWS...");
+        
+        dao.ECSDAO ecsDAO = new dao.ECSDAO();
+        List<ECSService> services = getAllECSServices();
+        
+        for (ECSService service : services) {
+            service.setUserId(userId);
+            ecsDAO.saveOrUpdateECSService(service);
+        }
+        
+        System.out.println("Synced " + services.size() + " ECS services from AWS");
+        return services.size();
+    }
 }

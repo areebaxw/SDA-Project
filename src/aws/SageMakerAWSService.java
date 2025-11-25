@@ -212,4 +212,26 @@ public class SageMakerAWSService {
         }
         return false;
     }
+    
+    /**
+     * Sync SageMaker endpoints from AWS to database
+     * Business logic method that orchestrates: fetch from AWS, set user, save to DB, count results
+     */
+    public int syncFromAWS(int userId) {
+        System.out.println("Syncing SageMaker endpoints from AWS...");
+        
+        dao.SageMakerDAO sageMakerDAO = new dao.SageMakerDAO();
+        List<SageMakerEndpoint> endpoints = getAllEndpoints();
+        
+        int savedCount = 0;
+        for (SageMakerEndpoint endpoint : endpoints) {
+            endpoint.setUserId(userId);
+            if (sageMakerDAO.saveOrUpdateEndpoint(endpoint)) {
+                savedCount++;
+            }
+        }
+        
+        System.out.println("Synced " + savedCount + " SageMaker endpoints from AWS");
+        return savedCount;
+    }
 }

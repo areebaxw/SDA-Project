@@ -145,4 +145,23 @@ public class RDSService {
         }
         return false;
     }
+    
+    /**
+     * Sync RDS instances from AWS to database
+     * Business logic method that orchestrates: fetch from AWS, set user, save to DB
+     */
+    public int syncFromAWS(int userId) {
+        System.out.println("Syncing RDS instances from AWS...");
+        
+        dao.RDSDAO rdsDAO = new dao.RDSDAO();
+        List<RDSInstance> instances = getAllDBInstances();
+        
+        for (RDSInstance instance : instances) {
+            instance.setUserId(userId);
+            rdsDAO.saveOrUpdateRDSInstance(instance);
+        }
+        
+        System.out.println("Synced " + instances.size() + " RDS instances from AWS");
+        return instances.size();
+    }
 }

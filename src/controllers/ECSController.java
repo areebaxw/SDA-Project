@@ -95,15 +95,13 @@ public class ECSController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            List<ECSService> services = ecsAWSService.getAllECSServices();
+            // ✅ FIXED: Delegate ALL sync logic to service
+            // Service handles: fetch from AWS, set user, save to DB
+            int syncedCount = ecsAWSService.syncFromAWS(currentUser.getUserId());
             
-            for (ECSService service : services) {
-                service.setUserId(currentUser.getUserId());
-                ecsDAO.saveOrUpdateECSService(service);
-            }
-            
+            // ✅ CORRECT: Controller only reloads UI
             loadECSServices();
-            showInfo("Synced " + services.size() + " ECS services from AWS");
+            showInfo("Synced " + syncedCount + " ECS services from AWS");
         } catch (Exception e) {
             System.err.println("Error syncing ECS services: " + e.getMessage());
             showError("Error syncing from AWS: " + e.getMessage());

@@ -94,27 +94,15 @@ public class SageMakerController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            System.out.println("Starting SageMaker sync from AWS...");
+            // ✅ FIXED: Delegate ALL sync logic to service
+            // Service handles: fetch from AWS, set user, save to DB, count results
+            int syncedCount = sageMakerAWSService.syncFromAWS(currentUser.getUserId());
             
-            List<SageMakerEndpoint> endpoints = sageMakerAWSService.getAllEndpoints();
-            
-            System.out.println("Retrieved " + endpoints.size() + " SageMaker endpoints from AWS");
-            
-            int savedCount = 0;
-            for (SageMakerEndpoint endpoint : endpoints) {
-                endpoint.setUserId(currentUser.getUserId());
-                System.out.println("Saving endpoint: " + endpoint.getEndpointName() + " - Status: " + endpoint.getEndpointStatus());
-                if (sageMakerDAO.saveOrUpdateEndpoint(endpoint)) {
-                    savedCount++;
-                }
-            }
-            
-            System.out.println("Saved " + savedCount + " SageMaker endpoints to database");
-            
+            // ✅ CORRECT: Controller only reloads UI
             loadSageMakerEndpoints();
             
-            if (savedCount > 0) {
-                showInfo("Synced " + savedCount + " SageMaker endpoints from AWS");
+            if (syncedCount > 0) {
+                showInfo("Synced " + syncedCount + " SageMaker endpoints from AWS");
             } else {
                 showInfo("No SageMaker endpoints found in your AWS account.");
             }

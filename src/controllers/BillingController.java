@@ -198,38 +198,17 @@ public class BillingController {
             
             System.out.println("Syncing billing data from " + startDate + " to " + endDate);
             
-            // Fetch billing data from AWS
-            List<BillingRecord> awsRecords = billingService.getCostAndUsage(
-                startDate, endDate, currentUser.getUserId()
-            );
+            // ✅ FIXED: Delegate ALL sync logic to service
+            // Service handles: fetch from AWS, save to DB, count results
+            int savedCount = billingService.syncFromAWS(startDate, endDate, currentUser.getUserId());
             
-            System.out.println("Fetched " + awsRecords.size() + " records from AWS");
-            
-            if (awsRecords.isEmpty()) {
-                System.out.println("WARNING: No records returned from AWS Cost Explorer");
-                showInfo("No billing data available from AWS. Note: AWS Cost Explorer may have a 24-48 hour delay.");
-                totalCostLabel.setText("$0.00");
-                return;
-            }
-            
-            // Save to database (upsert to avoid duplicates)
-            int savedCount = 0;
-            for (BillingRecord record : awsRecords) {
-                System.out.println("Syncing: " + record.getServiceName() + " - $" + String.format("%.6f", record.getCostAmount()));
-                if (billingDAO.upsertBillingRecord(record)) {
-                    savedCount++;
-                }
-            }
-            
-            System.out.println("Saved " + savedCount + " records to database");
-            
-            // Refresh the view
+            // ✅ CORRECT: Controller only reloads UI
             loadBillingRecords();
             
             if (savedCount > 0) {
                 showInfo("Successfully synced " + savedCount + " billing records from AWS!");
             } else {
-                showInfo("No new billing records found. AWS Cost Explorer may have a 24-48 hour delay for recent usage.");
+                showInfo("No billing data available from AWS. Note: AWS Cost Explorer may have a 24-48 hour delay.");
             }
             
         } catch (Exception e) {
