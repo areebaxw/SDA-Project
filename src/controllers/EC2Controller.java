@@ -9,8 +9,8 @@ import models.User;
 import models.EC2Instance;
 import dao.EC2DAO;
 import aws.EC2Service;
-import aws.CloudWatchService;
 import services.IdleDetectionService;
+import services.CombinedIdleStrategy;
 
 import java.util.List;
 
@@ -57,14 +57,12 @@ public class EC2Controller {
     private User currentUser;
     private EC2DAO ec2DAO;
     private EC2Service ec2Service;
-    private CloudWatchService cloudWatchService;
     private IdleDetectionService idleDetectionService;
     private ObservableList<EC2Instance> ec2Data;
     
     public EC2Controller() {
         this.ec2DAO = new EC2DAO();
         this.ec2Service = new EC2Service();
-        this.cloudWatchService = new CloudWatchService();
         this.idleDetectionService = new IdleDetectionService();
         this.ec2Data = FXCollections.observableArrayList();
     }
@@ -114,23 +112,13 @@ public class EC2Controller {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            List<EC2Instance> instances = ec2Service.getAllInstances();
+            // ✅ CORRECT: Delegate ALL sync logic to service
+            // Service handles: fetch from AWS, get metrics, save to DB
+            int syncedCount = ec2Service.syncFromAWS(currentUser.getUserId());
             
-            for (EC2Instance instance : instances) {
-                // Fetch CPU utilization for running instances
-                if ("running".equalsIgnoreCase(instance.getInstanceState())) {
-                    double cpuUtilization = cloudWatchService.getEC2CPUUtilization(instance.getInstanceId(), 7);
-                    instance.setCpuUtilization(cpuUtilization);
-                }
-                
-                // Set idle to null when syncing from AWS
-                instance.setIdle(null);
-                instance.setUserId(currentUser.getUserId());
-                ec2DAO.saveOrUpdateEC2Instance(instance);
-            }
-            
+            // ✅ CORRECT: Controller only reloads UI
             loadEC2Instances();
-            showInfo("Synced " + instances.size() + " EC2 instances from AWS");
+            showInfo("Synced " + syncedCount + " EC2 instances from AWS");
         } catch (Exception e) {
             System.err.println("Error syncing EC2 instances: " + e.getMessage());
             showError("Error syncing from AWS: " + e.getMessage());
@@ -204,32 +192,22 @@ public class EC2Controller {
     
     @FXML
     private void handleDetectIdle() {
-        try {
-            // Detect idle status for current instances in UI only
-            for (EC2Instance instance : ec2Data) {
-                if ("running".equalsIgnoreCase(instance.getInstanceState())) {
-                    // Get CPU and network metrics
-                    double cpuUtilization = cloudWatchService.getEC2CPUUtilization(instance.getInstanceId(), 7);
-                    double networkIn = cloudWatchService.getEC2NetworkIn(instance.getInstanceId(), 7);
-                    
-                    // Update instance metrics
-                    instance.setCpuUtilization(cpuUtilization);
-                    instance.setNetworkIn(networkIn);
-                    
-                    // Determine if idle (CPU < 5% threshold)
-                    boolean isIdle = cpuUtilization < 5.0;
-                    instance.setIdle(isIdle);
-                } else {
-                    instance.setIdle(false);
-                }
-            }
+        try{
+            idleDetectionService.setStrategy(new CombinedIdleStrategy());
+           
+            idleDetectionService.detectIdleEC2Instances(7, 5.0);
             
-            // Refresh table to show updated idle status (UI only, not saved to DB)
-            ec2Table.refresh();
-            showInfo("Idle detection completed!");
+           
+            loadEC2Instances();
+            showInfo("Idle detection completed! Check alerts for idle instances.");
+            
+        } catch (IllegalStateException e) {
+            System.err.println("Strategy error: " + e.getMessage());
+            showError("Strategy not properly configured: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Error detecting idle instances: " + e.getMessage());
-            showError("Error detecting idle instances");
+            e.printStackTrace();
+            showError("Error detecting idle instances: " + e.getMessage());
         }
     }
     

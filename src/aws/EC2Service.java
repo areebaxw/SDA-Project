@@ -132,4 +132,42 @@ public class EC2Service {
         }
         return "unknown";
     }
+    
+    /**
+     * Sync EC2 instances from AWS to database with metrics
+     * Business logic method that orchestrates: fetch from AWS, get metrics, save to DB
+     */
+    public int syncFromAWS(int userId) {
+        System.out.println("Syncing EC2 instances from AWS...");
+        
+        dao.EC2DAO ec2DAO = new dao.EC2DAO();
+        CloudWatchService cloudWatchService = new CloudWatchService();
+        
+        List<EC2Instance> instances = getAllInstances();
+        
+        for (EC2Instance instance : instances) {
+            try {
+                // Fetch CPU utilization for running instances
+                if ("running".equalsIgnoreCase(instance.getInstanceState())) {
+                    double cpuUtilization = cloudWatchService.getEC2CPUUtilization(
+                        instance.getInstanceId(), 7
+                    );
+                    instance.setCpuUtilization(cpuUtilization);
+                }
+                
+                // Reset idle status (will be determined by idle detection service)
+                instance.setIdle(null);
+                instance.setUserId(userId);
+                
+                // Save to database
+                ec2DAO.saveOrUpdateEC2Instance(instance);
+                
+            } catch (Exception e) {
+                System.err.println("Error syncing instance " + instance.getInstanceId() + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("Synced " + instances.size() + " EC2 instances from AWS");
+        return instances.size();
+    }
 }
