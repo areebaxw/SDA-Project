@@ -3,101 +3,365 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.effect.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.DashboardController">
-    
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.DashboardController"
+            prefWidth="1400" prefHeight="900"
+            stylesheets="@../styles/dashboard.css"
+            style="-fx-background-color: #0d0d0d;">
+
+    <!-- TOP HEADER -->
     <top>
-        <VBox style="-fx-background-color: #000000;">
-            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 15;">
-                <Label text="AWS Governance Dashboard" style="-fx-text-fill: #ED7D27; -fx-font-size: 20px; -fx-font-weight: bold;"/>
-                <Region HBox.hgrow="ALWAYS">
-                    <HBox.margin>
-                        <Insets/>
-                    </HBox.margin>
-                </Region>
-                <Label fx:id="welcomeLabel" text="Welcome, User" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+        <VBox spacing="0" styleClass="top-header">
+
+            <!-- Navigation Bar -->
+            <HBox spacing="0" alignment="CENTER" styleClass="nav-bar">
+
+                <!-- Logo Section -->
+                <HBox spacing="15" alignment="CENTER_LEFT" styleClass="logo-section">
+                    <StackPane styleClass="logo-badge">
+                        <Label text="AWS" styleClass="logo-text"/>
+                    </StackPane>
+                    
+                    <Separator orientation="VERTICAL" styleClass="nav-separator"/>
+                    
+                    <Label fx:id="welcomeTitle" text="Cloud Governance Dashboard" 
+                           styleClass="dashboard-title"/>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Status & User Section -->
+                <HBox spacing="20" alignment="CENTER_RIGHT">
+
+                    <!-- Live Status Badge -->
+                    <HBox spacing="10" alignment="CENTER" styleClass="live-badge">
+                        <Circle radius="6" styleClass="pulse-dot"/>
+                        <Label text="LIVE" styleClass="live-text"/>
+                    </HBox>
+
+                    <Separator orientation="VERTICAL" styleClass="nav-separator"/>
+
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label fx:id="welcomeSubtitle" text="Welcome, User" 
+                               styleClass="user-name"/>
+                        <Label text="System Administrator" styleClass="user-role"/>
+                    </VBox>
+                </HBox>
+
             </HBox>
-            
-            <HBox alignment="CENTER" spacing="30" style="-fx-padding: 15; -fx-background-color: #141414ff;">
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="ec2HeaderLabel" text="EC2 Instances" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalEC2Label" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+            <!-- METRICS GRID -->
+            <GridPane hgap="20" vgap="20" styleClass="metrics-grid">
+
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="16.6"/>
+                    <ColumnConstraints percentWidth="16.6"/>
+                    <ColumnConstraints percentWidth="16.6"/>
+                    <ColumnConstraints percentWidth="16.6"/>
+                    <ColumnConstraints percentWidth="16.6"/>
+                    <ColumnConstraints percentWidth="16.6"/>
+                </columnConstraints>
+
+                <!-- EC2 Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="0" styleClass="metric-card">
+                    <Label text="EC2" styleClass="metric-label"/>
+                    <Label fx:id="totalEC2Label" text="0" styleClass="metric-value"/>
+                    <Label text="Instances" styleClass="metric-subtitle"/>
+                    <ProgressBar progress="0.68" styleClass="metric-progress"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="rdsHeaderLabel" text="RDS Instances" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalRDSLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <!-- RDS Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="1" styleClass="metric-card">
+                    <Label text="RDS" styleClass="metric-label"/>
+                    <Label fx:id="totalRDSLabel" text="0" styleClass="metric-value"/>
+                    <Label text="Databases" styleClass="metric-subtitle"/>
+                    <ProgressBar progress="0.62" styleClass="metric-progress"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="ecsHeaderLabel" text="ECS Services" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalECSLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <!-- ECS Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="2" styleClass="metric-card">
+                    <Label text="ECS" styleClass="metric-label"/>
+                    <Label fx:id="totalECSLabel" text="0" styleClass="metric-value"/>
+                    <Label text="Services" styleClass="metric-subtitle"/>
+                    <ProgressBar progress="0.72" styleClass="metric-progress"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="sageMakerHeaderLabel" text="SageMaker" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalSageMakerLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <!-- SageMaker Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="3" styleClass="metric-card">
+                    <Label text="SAGEMAKER" styleClass="metric-label"/>
+                    <Label fx:id="totalSageMakerLabel" text="0" styleClass="metric-value"/>
+                    <Label text="Endpoints" styleClass="metric-subtitle"/>
+                    <ProgressBar progress="0.81" styleClass="metric-progress"/>
                 </VBox>
-                
-                <Separator orientation="VERTICAL"/>
-    
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="alertsHeaderLabel" text="Active Alerts" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalAlertsLabel" text="0" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <!-- Alerts Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="4" styleClass="metric-card alert-card">
+                    <Label text="ALERTS" styleClass="metric-label alert-label"/>
+                    <Label fx:id="totalAlertsLabel" text="0" styleClass="metric-value alert-value"/>
+                    <Label text="Active Issues" styleClass="metric-subtitle alert-subtitle"/>
+                    <ProgressBar progress="0.08" styleClass="metric-progress alert-progress"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="costHeaderLabel" text="Credits Used This Month" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="costTrendLabel" text="\$0.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <!-- Cost Card -->
+                <VBox spacing="12" alignment="TOP_LEFT" GridPane.columnIndex="5" styleClass="metric-card cost-card">
+                    <Label text="CREDITS" styleClass="metric-label cost-label"/>
+
+                    <Label fx:id="costTrendLabel" text="$0.00" styleClass="metric-value cost-value"/>
+                    <Label text="Available Credits" styleClass="metric-subtitle cost-subtitle"/>
+                    <ProgressBar fx:id="costProgress" progress="0.76" styleClass="metric-progress cost-progress"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="totalCreditsHeaderLabel" text="Total Credits" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalCreditsLabel" text="\$100.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-                </VBox>
-            </HBox>
+
+            </GridPane>
         </VBox>
     </top>
-    
+
+    <!-- SIDEBAR -->
     <left>
-        <VBox spacing="5" style="-fx-background-color: #141414ff; -fx-padding: 10; -fx-pref-width: 200;">
-            <Label text="MONITORING" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="ec2Button" text="EC2 Instances" onAction="#handleEC2Monitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="rdsButton" text="RDS Databases" onAction="#handleRDSMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="ecsButton" text="ECS Services" onAction="#handleECSMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="sageMakerButton" text="SageMaker" onAction="#handleSageMakerMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Separator/>
-            
-            <Label text="GOVERNANCE" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="rulesButton" text="Rules" onAction="#handleRulesManagement" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="alertsButton" text="Alerts" onAction="#handleAlertsView" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Separator/>
-            
-            <Label text="REPORTS" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="billingButton" text="Billing" onAction="#handleBillingReports" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Separator/>
-            
-            <Button text="↻ Refresh Dashboard" onAction="#handleRefresh" maxWidth="Infinity" style="-fx-background-color: #ED7D27; -fx-text-fill: #000000; -fx-padding: 10,10,10,10; -fx-font-weight: bold;-fx-font-size: 14px;"/>
-        </VBox>
-    </left>
-    
-    <center>
-        <VBox fx:id="contentArea" style="-fx-background-color: #000000; -fx-padding: 20;" alignment="CENTER" spacing="10">
-            <VBox alignment="CENTER" spacing="10">
-                <Label text="Welcome to AWS Cloud Governance Tool" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill:#ED7D27;"/>
-                <Label text="Select an option from the sidebar to get started" style="-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"/>
+        <ScrollPane fitToWidth="true" styleClass="sidebar-scroll">
+            <VBox spacing="0" styleClass="sidebar">
+
+                <VBox spacing="8" styleClass="sidebar-header">
+                    <Label text="NAVIGATION" styleClass="sidebar-section-title"/>
+                </VBox>
+
+                <!-- Monitoring Section -->
+                <VBox spacing="6" styleClass="sidebar-section">
+                    <Label text="MONITORING" styleClass="sidebar-category"/>
+                    <Button text="🖥  EC2 Instances" onAction="#handleEC2Monitor"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                    <Button text="🗄  RDS Databases" onAction="#handleRDSMonitor"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                    <Button text="⚙  ECS Services" onAction="#handleECSMonitor"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                    <Button text="🤖  SageMaker" onAction="#handleSageMakerMonitor"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                </VBox>
+
+                <Separator styleClass="sidebar-separator"/>
+
+                <!-- Governance Section -->
+                <VBox spacing="6" styleClass="sidebar-section">
+                    <Label text="GOVERNANCE" styleClass="sidebar-category"/>
+                    <Button text="📋  Rules Manager" onAction="#handleRulesManagement"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                    <Button text="🔔  Alert Center" onAction="#handleAlertsView"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                </VBox>
+
+                <Separator styleClass="sidebar-separator"/>
+
+                <!-- Reports Section -->
+                <VBox spacing="6" styleClass="sidebar-section">
+                    <Label text="REPORTS" styleClass="sidebar-category"/>
+                    <Button text="💰  Billing Reports" onAction="#handleBillingReports"
+                            maxWidth="Infinity" styleClass="sidebar-button"/>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <VBox styleClass="sidebar-footer">
+                    <Button text="⟳  Refresh Data" onAction="#handleRefresh"
+                            maxWidth="Infinity" styleClass="refresh-button"/>
+                </VBox>
             </VBox>
-        </VBox>
+        </ScrollPane>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" pannable="true" styleClass="content-scroll">
+            
+            <VBox fx:id="contentArea" spacing="30" styleClass="content-area" VBox.vgrow="ALWAYS">
+
+                <!-- WELCOME HERO SECTION -->
+                <VBox spacing="15" alignment="CENTER" styleClass="hero-section">
+                    
+                    <Label text="AWS Cloud Governance" styleClass="hero-title"/>
+
+                    <Label text="Enterprise cloud monitoring, cost visibility, and governance automation"
+                           styleClass="hero-subtitle"/>
+                    
+                    <HBox spacing="15" alignment="CENTER" styleClass="hero-badges">
+                        <Label text="✓ Real-time Monitoring" styleClass="hero-badge"/>
+                        <Label text="✓ Cost Optimization" styleClass="hero-badge"/>
+                        <Label text="✓ Compliance Tracking" styleClass="hero-badge"/>
+                    </HBox>
+                </VBox>
+
+                <!-- INFO BANNER -->
+                <HBox spacing="20" alignment="CENTER" styleClass="info-banner">
+                    <Label text="ℹ" styleClass="info-icon"/>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Dashboard Overview" styleClass="info-title"/>
+                        <Label text="Monitor AWS resources, track costs, and manage compliance in real-time."
+                               styleClass="info-text"/>
+                    </VBox>
+                </HBox>
+
+                <!-- QUICK ACTIONS -->
+                <VBox spacing="18">
+                    <Label text="Quick Actions" styleClass="quick-actions-title"/>
+
+                    <GridPane hgap="20" vgap="20">
+
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="33"/>
+                            <ColumnConstraints percentWidth="33"/>
+                            <ColumnConstraints percentWidth="33"/>
+                        </columnConstraints>
+
+                        <!-- Row 1 -->
+                        <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="quick-card">
+                            <Label text="🖥  EC2 Monitor" styleClass="quick-card-title"/>
+                            <Label text="View and manage EC2 instances" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                        <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="quick-card">
+                            <Label text="💰  View Costs" styleClass="quick-card-title"/>
+                            <Label text="Analyze billing and spending" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                        <VBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="quick-card">
+                            <Label text="📋  Rules Manager" styleClass="quick-card-title"/>
+                            <Label text="Configure policy rules" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                        <!-- Row 2 -->
+                        <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="quick-card">
+                            <Label text="🗄  RDS Databases" styleClass="quick-card-title"/>
+                            <Label text="Monitor DB instances" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                        <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="quick-card">
+                            <Label text="🔔  Alert Center" styleClass="quick-card-title"/>
+                            <Label text="View system alerts" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                        <VBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="quick-card">
+                            <Label text="📊  Billing Reports" styleClass="quick-card-title"/>
+                            <Label text="Access financial reports" styleClass="quick-card-desc"/>
+                        </VBox>
+
+                    </GridPane>
+                </VBox>
+
+                <!-- RECENT ACTIVITY -->
+                <VBox spacing="18" styleClass="activity-container">
+                    
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Recent Activity" styleClass="activity-header-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="View All →" styleClass="view-all-link"/>
+                    </HBox>
+
+                    <VBox spacing="14">
+
+                        <!-- Activity Item 1 -->
+                        <HBox spacing="16" styleClass="activity-item">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="EC2 Instance Deployed" styleClass="activity-title"/>
+                                <Label text="New instance launched in us-east-1" styleClass="activity-desc"/>
+                            </VBox>
+                            <Label text="2 min ago" styleClass="activity-time"/>
+                        </HBox>
+
+                        <!-- Activity Item 2 -->
+                        <HBox spacing="16" styleClass="activity-item">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Cost Alert Triggered" styleClass="activity-title"/>
+                                <Label text="Exceeded 80% monthly budget threshold" styleClass="activity-desc"/>
+                            </VBox>
+                            <Label text="1 hour ago" styleClass="activity-time"/>
+                        </HBox>
+
+                        <!-- Activity Item 3 -->
+                        <HBox spacing="16" styleClass="activity-item">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="RDS Backup Completed" styleClass="activity-title"/>
+                                <Label text="Backup successful for production database" styleClass="activity-desc"/>
+                            </VBox>
+                            <Label text="3 hours ago" styleClass="activity-time"/>
+                        </HBox>
+
+                    </VBox>
+                </VBox>
+                <!-- SYSTEM STATUS -->
+                <HBox spacing="25">
+
+                    <!-- System Health Card -->
+                    <VBox spacing="18" HBox.hgrow="ALWAYS" styleClass="status-card">
+
+                        <Label text="System Health" styleClass="status-title"/>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Circle radius="8" styleClass="status-dot"/>
+                            <Label text="All Systems Operational" styleClass="status-operational"/>
+                        </HBox>
+
+                        <VBox spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="EC2 Services" styleClass="status-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="99.9%" styleClass="status-value status-value-good"/>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="RDS Services" styleClass="status-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="100%" styleClass="status-value status-value-good"/>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="ECS Services" styleClass="status-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="98.7%" styleClass="status-value status-value-warn"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Performance Metrics Card -->
+                    <VBox spacing="18" HBox.hgrow="ALWAYS" styleClass="status-card">
+
+                        <Label text="Performance Metrics" styleClass="status-title"/>
+
+                        <VBox spacing="16">
+
+                            <VBox spacing="6">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="CPU Usage" styleClass="status-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="54%" styleClass="status-value status-value-good"/>
+                                </HBox>
+                                <ProgressBar progress="0.54" styleClass="metric-progress" maxWidth="Infinity"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Memory Usage" styleClass="status-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="72%" styleClass="status-value status-value-warn"/>
+                                </HBox>
+                                <ProgressBar progress="0.72" styleClass="metric-progress" maxWidth="Infinity"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Network I/O" styleClass="status-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="34%" styleClass="status-value status-value-good"/>
+                                </HBox>
+                                <ProgressBar progress="0.34" styleClass="metric-progress" maxWidth="Infinity"/>
+                            </VBox>
+
+                        </VBox>
+                    </VBox>
+
+                </HBox>
+            </VBox>
+        </ScrollPane>
     </center>
+
 </BorderPane>
+
