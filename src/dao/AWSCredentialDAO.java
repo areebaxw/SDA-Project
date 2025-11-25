@@ -41,16 +41,17 @@ public class AWSCredentialDAO {
         // Deactivate all existing credentials for this user first
         deactivateAllCredentials(credential.getUserId());
         
-        String query = "INSERT INTO aws_credentials (user_id, access_key, secret_key, region, is_active, validated) " +
-                      "VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO aws_credentials (user_id, access_key, secret_key, region, remaining_credits, is_active, validated) " +
+                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, credential.getUserId());
             stmt.setString(2, credential.getAccessKey());
             stmt.setString(3, credential.getSecretKey());
             stmt.setString(4, credential.getRegion());
-            stmt.setBoolean(5, credential.isActive());
-            stmt.setBoolean(6, credential.isValidated());
+            stmt.setDouble(5, credential.getRemainingCredits());
+            stmt.setBoolean(6, credential.isActive());
+            stmt.setBoolean(7, credential.isValidated());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -73,6 +74,24 @@ public class AWSCredentialDAO {
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error updating validation status: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Update remaining credits for active credentials
+     */
+    public boolean updateRemainingCredits(int userId, double remainingCredits) {
+        String query = "UPDATE aws_credentials SET remaining_credits = ? WHERE user_id = ? AND is_active = TRUE";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setDouble(1, remainingCredits);
+            stmt.setInt(2, userId);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating remaining credits: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -121,6 +140,7 @@ public class AWSCredentialDAO {
         credential.setAccessKey(rs.getString("access_key"));
         credential.setSecretKey(rs.getString("secret_key"));
         credential.setRegion(rs.getString("region"));
+        credential.setRemainingCredits(rs.getDouble("remaining_credits"));
         credential.setActive(rs.getBoolean("is_active"));
         credential.setValidated(rs.getBoolean("validated"));
         

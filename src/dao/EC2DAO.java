@@ -63,7 +63,12 @@ public class EC2DAO {
             stmt.setDouble(6, instance.getCpuUtilization());
             stmt.setDouble(7, instance.getNetworkIn());
             stmt.setDouble(8, instance.getNetworkOut());
-            stmt.setBoolean(9, instance.isIdle());
+            // Handle null Boolean for isIdle
+            if (instance.isIdle() != null) {
+                stmt.setBoolean(9, instance.isIdle());
+            } else {
+                stmt.setNull(9, java.sql.Types.BOOLEAN);
+            }
             stmt.setInt(10, instance.getUserId());
             
             int rowsAffected = stmt.executeUpdate();
@@ -90,7 +95,12 @@ public class EC2DAO {
             stmt.setDouble(4, instance.getCpuUtilization());
             stmt.setDouble(5, instance.getNetworkIn());
             stmt.setDouble(6, instance.getNetworkOut());
-            stmt.setBoolean(7, instance.isIdle());
+            // Handle null Boolean for isIdle
+            if (instance.isIdle() != null) {
+                stmt.setBoolean(7, instance.isIdle());
+            } else {
+                stmt.setNull(7, java.sql.Types.BOOLEAN);
+            }
             stmt.setString(8, instance.getInstanceId());
             
             int rowsAffected = stmt.executeUpdate();

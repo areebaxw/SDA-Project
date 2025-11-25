@@ -109,7 +109,14 @@ public class AlertDAO {
             stmt.setString(3, alert.getAlertType());
             stmt.setString(4, alert.getSeverity());
             stmt.setString(5, alert.getMessage());
-            stmt.setInt(6, alert.getRuleId());
+            
+            // Handle null or 0 rule_id - set to NULL for database
+            if (alert.getRuleId() <= 0) {
+                stmt.setNull(6, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(6, alert.getRuleId());
+            }
+            
             stmt.setBoolean(7, alert.isResolved());
             
             int rowsAffected = stmt.executeUpdate();

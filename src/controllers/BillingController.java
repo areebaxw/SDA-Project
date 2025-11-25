@@ -9,6 +9,8 @@ import javafx.scene.chart.PieChart;
 import models.User;
 import models.BillingRecord;
 import dao.BillingDAO;
+import aws.BillingService;
+import aws.AWSClientFactory;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -45,10 +47,12 @@ public class BillingController {
     
     private User currentUser;
     private BillingDAO billingDAO;
+    private BillingService billingService;
     private ObservableList<BillingRecord> billingData;
     
     public BillingController() {
         this.billingDAO = new BillingDAO();
+        this.billingService = new BillingService();
         this.billingData = FXCollections.observableArrayList();
     }
     
@@ -66,7 +70,21 @@ public class BillingController {
     
     private void setupTableColumns() {
         serviceColumn.setCellValueFactory(new PropertyValueFactory<>("serviceName"));
+        
+        // Format cost column to show 4 decimal places
         costColumn.setCellValueFactory(new PropertyValueFactory<>("costAmount"));
+        costColumn.setCellFactory(column -> new TableCell<BillingRecord, Double>() {
+            @Override
+            protected void updateItem(Double cost, boolean empty) {
+                super.updateItem(cost, empty);
+                if (empty || cost == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("$%.4f", cost));
+                }
+            }
+        });
+        
         periodColumn.setCellValueFactory(cellData -> {
             BillingRecord record = cellData.getValue();
             String period = record.getStartDate() + " to " + record.getEndDate();
@@ -77,10 +95,15 @@ public class BillingController {
     }
     
     private void setupDatePickers() {
-        // Set default date range to current month
+        // Set default date range to current month minus 2 days (AWS Cost Explorer has 24-48 hour delay)
         LocalDate now = LocalDate.now();
+        LocalDate adjustedEnd = now.minusDays(2); // Account for AWS API delay
+        
         startDatePicker.setValue(now.withDayOfMonth(1));
-        endDatePicker.setValue(now);
+        endDatePicker.setValue(adjustedEnd);
+        
+        System.out.println("Default date range set to: " + now.withDayOfMonth(1) + " to " + adjustedEnd);
+        System.out.println("Note: AWS Cost Explorer typically has 24-48 hour delay for cost data");
     }
     
     @FXML
@@ -96,14 +119,20 @@ public class BillingController {
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             
+            System.out.println("Loading billing records from " + startDate + " to " + endDate);
+            
             List<BillingRecord> records = billingDAO.getBillingRecordsByDateRange(
                 currentUser.getUserId(),
                 Date.valueOf(startDate),
                 Date.valueOf(endDate)
             );
             
+            System.out.println("Found " + records.size() + " records in database");
+            
             billingData.clear();
             billingData.addAll(records);
+            
+            System.out.println("Table now has " + billingData.size() + " items");
             
             // Calculate total cost
             double totalCost = billingDAO.getTotalCost(
@@ -112,7 +141,7 @@ public class BillingController {
                 Date.valueOf(endDate)
             );
             
-            totalCostLabel.setText(String.format("$%.2f", totalCost));
+            totalCostLabel.setText(String.format("$%.4f", totalCost));
             
             // Update pie chart
             updateCostChart(startDate, endDate);
@@ -137,7 +166,7 @@ public class BillingController {
             
             for (Map.Entry<String, Double> entry : costByService.entrySet()) {
                 pieChartData.add(new PieChart.Data(
-                    entry.getKey() + " ($" + String.format("%.2f", entry.getValue()) + ")",
+                    entry.getKey() + " ($" + String.format("%.4f", entry.getValue()) + ")",
                     entry.getValue()
                 ));
             }
@@ -145,6 +174,69 @@ public class BillingController {
             costPieChart.setData(pieChartData);
         } catch (Exception e) {
             System.err.println("Error updating cost chart: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleSyncFromAWS() {
+        if (currentUser == null) {
+            showError("User not set");
+            return;
+        }
+        
+        if (!AWSClientFactory.getInstance().isInitialized()) {
+            showError("AWS credentials not configured. Please configure your AWS credentials first.");
+            return;
+        }
+        
+        try {
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue(); // Don't add extra day
+            
+            // Show loading indicator
+            totalCostLabel.setText("Syncing...");
+            
+            System.out.println("Syncing billing data from " + startDate + " to " + endDate);
+            
+            // Fetch billing data from AWS
+            List<BillingRecord> awsRecords = billingService.getCostAndUsage(
+                startDate, endDate, currentUser.getUserId()
+            );
+            
+            System.out.println("Fetched " + awsRecords.size() + " records from AWS");
+            
+            if (awsRecords.isEmpty()) {
+                System.out.println("WARNING: No records returned from AWS Cost Explorer");
+                showInfo("No billing data available from AWS. Note: AWS Cost Explorer may have a 24-48 hour delay.");
+                totalCostLabel.setText("$0.00");
+                return;
+            }
+            
+            // Save to database (upsert to avoid duplicates)
+            int savedCount = 0;
+            for (BillingRecord record : awsRecords) {
+                System.out.println("Syncing: " + record.getServiceName() + " - $" + String.format("%.6f", record.getCostAmount()));
+                if (billingDAO.upsertBillingRecord(record)) {
+                    savedCount++;
+                }
+            }
+            
+            System.out.println("Saved " + savedCount + " records to database");
+            
+            // Refresh the view
+            loadBillingRecords();
+            
+            if (savedCount > 0) {
+                showInfo("Successfully synced " + savedCount + " billing records from AWS!");
+            } else {
+                showInfo("No new billing records found. AWS Cost Explorer may have a 24-48 hour delay for recent usage.");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error syncing from AWS: " + e.getMessage());
+            e.printStackTrace();
+            showError("Error syncing billing data from AWS: " + e.getMessage());
+            totalCostLabel.setText("$0.00");
         }
     }
     

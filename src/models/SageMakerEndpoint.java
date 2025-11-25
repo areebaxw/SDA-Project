@@ -16,18 +16,19 @@ public class SageMakerEndpoint {
     private int instanceCount;
     private int invocations;
     private double modelLatency;
-    private boolean isIdle;
+    private Boolean isIdle;
     private LocalDateTime creationTime;
     private LocalDateTime lastChecked;
+    private String resourceType; // 'endpoint' or 'notebook'
     private int userId;
     
     // Constructors
     public SageMakerEndpoint() {}
     
-    public SageMakerEndpoint(String endpointName, String endpointStatus, String modelName) {
+    public SageMakerEndpoint(String endpointName, String endpointStatus, String resourceType) {
         this.endpointName = endpointName;
         this.endpointStatus = endpointStatus;
-        this.modelName = modelName;
+        this.resourceType = resourceType;
     }
     
     // Getters and Setters
@@ -103,11 +104,11 @@ public class SageMakerEndpoint {
         this.modelLatency = modelLatency;
     }
     
-    public boolean isIdle() {
+    public Boolean isIdle() {
         return isIdle;
     }
     
-    public void setIdle(boolean idle) {
+    public void setIdle(Boolean idle) {
         isIdle = idle;
     }
     
@@ -125,6 +126,14 @@ public class SageMakerEndpoint {
     
     public void setLastChecked(LocalDateTime lastChecked) {
         this.lastChecked = lastChecked;
+    }
+    
+    public String getResourceType() {
+        return resourceType;
+    }
+    
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
     }
     
     public int getUserId() {

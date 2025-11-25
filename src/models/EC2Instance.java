@@ -16,7 +16,7 @@ public class EC2Instance {
     private double cpuUtilization;
     private double networkIn;
     private double networkOut;
-    private boolean isIdle;
+    private Boolean isIdle;
     private LocalDateTime lastChecked;
     private int userId;
     
@@ -102,11 +102,11 @@ public class EC2Instance {
         this.networkOut = networkOut;
     }
     
-    public boolean isIdle() {
+    public Boolean isIdle() {
         return isIdle;
     }
     
-    public void setIdle(boolean idle) {
+    public void setIdle(Boolean idle) {
         isIdle = idle;
     }
     

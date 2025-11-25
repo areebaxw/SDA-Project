@@ -128,6 +128,47 @@ public class ECSAWSService {
     }
     
     /**
+     * Stop service (set desired count to 0)
+     */
+    public boolean stopService(String clusterName, String serviceName) {
+        return updateServiceDesiredCount(clusterName, serviceName, 0);
+    }
+    
+    /**
+     * Start service (set desired count to 1)
+     */
+    public boolean startService(String clusterName, String serviceName, int desiredCount) {
+        return updateServiceDesiredCount(clusterName, serviceName, desiredCount);
+    }
+    
+    /**
+     * Delete ECS service
+     */
+    public boolean deleteService(String clusterName, String serviceName) {
+        try {
+            // First, set desired count to 0
+            updateServiceDesiredCount(clusterName, serviceName, 0);
+            
+            // Wait a moment for tasks to stop
+            Thread.sleep(2000);
+            
+            DeleteServiceRequest request = DeleteServiceRequest.builder()
+                    .cluster(clusterName)
+                    .service(serviceName)
+                    .force(true)
+                    .build();
+            
+            ecsClient.deleteService(request);
+            System.out.println("Deleted ECS service: " + serviceName);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error deleting ECS service: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
      * Extract name from ARN
      */
     private String extractNameFromArn(String arn) {

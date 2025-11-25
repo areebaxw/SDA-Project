@@ -13,6 +13,8 @@ public class AlertService {
     private static AlertService instance;
     private final AlertDAO alertDAO;
     private final List<AlertObserver> observers;
+    private final EmailService emailService;
+    private final String notificationEmail = "mahadmalik1090@gmail.com"; // Default notification email
     
     /**
      * Private constructor for Singleton pattern
@@ -20,6 +22,7 @@ public class AlertService {
     private AlertService() {
         this.alertDAO = new AlertDAO();
         this.observers = new ArrayList<>();
+        this.emailService = EmailService.getInstance();
     }
     
     /**
@@ -59,6 +62,15 @@ public class AlertService {
         if (success) {
             System.out.println("Alert created: " + alert.getMessage());
             notifyObserversOfCreation(alert);
+            
+            // Send email notification
+            System.out.println("Sending email notification to: " + notificationEmail);
+            boolean emailSent = emailService.sendAlertNotification(notificationEmail, alert);
+            if (emailSent) {
+                System.out.println("Email notification sent successfully");
+            } else {
+                System.err.println("Failed to send email notification");
+            }
         }
         
         return success;

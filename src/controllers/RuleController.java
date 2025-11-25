@@ -57,6 +57,9 @@ public class RuleController {
     @FXML
     private TextField durationField;
     
+    @FXML
+    private ComboBox<String> durationUnitCombo;
+    
     private User currentUser;
     private RuleDAO ruleDAO;
     private ObservableList<Rule> ruleData;
@@ -103,6 +106,11 @@ public class RuleController {
         operatorCombo.setItems(FXCollections.observableArrayList(
             "<", ">", "=", "<=", ">="
         ));
+        
+        durationUnitCombo.setItems(FXCollections.observableArrayList(
+            "minutes", "hours", "days"
+        ));
+        durationUnitCombo.setValue("hours"); // Default to hours
     }
     
     @FXML
@@ -135,7 +143,13 @@ public class RuleController {
             rule.setConditionMetric(metricField.getText());
             rule.setConditionOperator(operatorCombo.getValue());
             rule.setConditionValue(Double.parseDouble(valueField.getText()));
-            rule.setConditionDuration(Integer.parseInt(durationField.getText()));
+            
+            // Store duration and unit as-is
+            int duration = Integer.parseInt(durationField.getText());
+            String unit = durationUnitCombo.getValue();
+            rule.setConditionDuration(duration);
+            rule.setDurationUnit(unit != null ? unit : "hours");
+            
             rule.setActive(true);
             rule.setCreatedBy(currentUser.getUserId());
             

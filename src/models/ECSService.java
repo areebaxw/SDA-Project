@@ -18,7 +18,7 @@ public class ECSService {
     private String taskDefinition;
     private double cpuUtilization;
     private double memoryUtilization;
-    private boolean isIdle;
+    private Boolean isIdle;
     private LocalDateTime lastChecked;
     private int userId;
     
@@ -120,11 +120,11 @@ public class ECSService {
         this.memoryUtilization = memoryUtilization;
     }
     
-    public boolean isIdle() {
+    public Boolean isIdle() {
         return isIdle;
     }
     
-    public void setIdle(boolean idle) {
+    public void setIdle(Boolean idle) {
         isIdle = idle;
     }
     

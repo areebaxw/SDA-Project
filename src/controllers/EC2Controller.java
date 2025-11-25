@@ -57,12 +57,14 @@ public class EC2Controller {
     private User currentUser;
     private EC2DAO ec2DAO;
     private EC2Service ec2Service;
+    private CloudWatchService cloudWatchService;
     private IdleDetectionService idleDetectionService;
     private ObservableList<EC2Instance> ec2Data;
     
     public EC2Controller() {
         this.ec2DAO = new EC2DAO();
         this.ec2Service = new EC2Service();
+        this.cloudWatchService = new CloudWatchService();
         this.idleDetectionService = new IdleDetectionService();
         this.ec2Data = FXCollections.observableArrayList();
     }
@@ -115,6 +117,14 @@ public class EC2Controller {
             List<EC2Instance> instances = ec2Service.getAllInstances();
             
             for (EC2Instance instance : instances) {
+                // Fetch CPU utilization for running instances
+                if ("running".equalsIgnoreCase(instance.getInstanceState())) {
+                    double cpuUtilization = cloudWatchService.getEC2CPUUtilization(instance.getInstanceId(), 7);
+                    instance.setCpuUtilization(cpuUtilization);
+                }
+                
+                // Set idle to null when syncing from AWS
+                instance.setIdle(null);
                 instance.setUserId(currentUser.getUserId());
                 ec2DAO.saveOrUpdateEC2Instance(instance);
             }
@@ -195,8 +205,27 @@ public class EC2Controller {
     @FXML
     private void handleDetectIdle() {
         try {
-            idleDetectionService.detectIdleEC2Instances(7, 5.0);
-            loadEC2Instances();
+            // Detect idle status for current instances in UI only
+            for (EC2Instance instance : ec2Data) {
+                if ("running".equalsIgnoreCase(instance.getInstanceState())) {
+                    // Get CPU and network metrics
+                    double cpuUtilization = cloudWatchService.getEC2CPUUtilization(instance.getInstanceId(), 7);
+                    double networkIn = cloudWatchService.getEC2NetworkIn(instance.getInstanceId(), 7);
+                    
+                    // Update instance metrics
+                    instance.setCpuUtilization(cpuUtilization);
+                    instance.setNetworkIn(networkIn);
+                    
+                    // Determine if idle (CPU < 5% threshold)
+                    boolean isIdle = cpuUtilization < 5.0;
+                    instance.setIdle(isIdle);
+                } else {
+                    instance.setIdle(false);
+                }
+            }
+            
+            // Refresh table to show updated idle status (UI only, not saved to DB)
+            ec2Table.refresh();
             showInfo("Idle detection completed!");
         } catch (Exception e) {
             System.err.println("Error detecting idle instances: " + e.getMessage());

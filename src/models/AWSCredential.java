@@ -14,6 +14,7 @@ public class AWSCredential {
     private String region;
     private boolean isActive;
     private boolean validated;
+    private double remainingCredits;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -84,6 +85,14 @@ public class AWSCredential {
     
     public void setValidated(boolean validated) {
         this.validated = validated;
+    }
+    
+    public double getRemainingCredits() {
+        return remainingCredits;
+    }
+    
+    public void setRemainingCredits(double remainingCredits) {
+        this.remainingCredits = remainingCredits;
     }
     
     public LocalDateTime getCreatedAt() {

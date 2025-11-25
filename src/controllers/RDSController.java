@@ -129,9 +129,94 @@ public class RDSController {
         }
     }
     
+    @FXML
+    private void handleStart() {
+        RDSInstance selected = rdsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an RDS instance");
+            return;
+        }
+        
+        if (!"stopped".equalsIgnoreCase(selected.getDbInstanceStatus())) {
+            showWarning("Instance must be in stopped state to start");
+            return;
+        }
+        
+        boolean success = rdsService.startDBInstance(selected.getDbInstanceIdentifier());
+        if (success) {
+            showInfo("RDS instance " + selected.getDbInstanceIdentifier() + " is starting");
+            handleRefresh();
+        } else {
+            showError("Failed to start RDS instance");
+        }
+    }
+    
+    @FXML
+    private void handleStop() {
+        RDSInstance selected = rdsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an RDS instance");
+            return;
+        }
+        
+        if (!"available".equalsIgnoreCase(selected.getDbInstanceStatus())) {
+            showWarning("Instance must be in available state to stop");
+            return;
+        }
+        
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Stop");
+        confirmation.setHeaderText("Stop RDS Instance");
+        confirmation.setContentText("Are you sure you want to stop " + selected.getDbInstanceIdentifier() + "?");
+        
+        if (confirmation.showAndWait().get() == ButtonType.OK) {
+            boolean success = rdsService.stopDBInstance(selected.getDbInstanceIdentifier());
+            if (success) {
+                showInfo("RDS instance " + selected.getDbInstanceIdentifier() + " is stopping");
+                handleRefresh();
+            } else {
+                showError("Failed to stop RDS instance");
+            }
+        }
+    }
+    
+    @FXML
+    private void handleDelete() {
+        RDSInstance selected = rdsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an RDS instance");
+            return;
+        }
+        
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Delete");
+        confirmation.setHeaderText("Delete RDS Instance");
+        confirmation.setContentText("⚠️ WARNING: This will PERMANENTLY DELETE " + selected.getDbInstanceIdentifier() + "!\n" +
+                "A final snapshot will be created before deletion.\nAre you sure?");
+        
+        if (confirmation.showAndWait().get() == ButtonType.OK) {
+            // Create final snapshot before deletion (false = don't skip snapshot)
+            boolean success = rdsService.deleteDBInstance(selected.getDbInstanceIdentifier(), false);
+            if (success) {
+                showInfo("RDS instance " + selected.getDbInstanceIdentifier() + " is being deleted (with final snapshot)");
+                handleRefresh();
+            } else {
+                showError("Failed to delete RDS instance");
+            }
+        }
+    }
+    
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

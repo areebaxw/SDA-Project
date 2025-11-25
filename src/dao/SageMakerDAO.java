@@ -17,9 +17,12 @@ public class SageMakerDAO {
     }
     
     public boolean saveOrUpdateEndpoint(SageMakerEndpoint endpoint) {
+        System.out.println("Attempting to save SageMaker endpoint: " + endpoint.getEndpointName());
         if (endpointExists(endpoint.getEndpointName())) {
+            System.out.println("Endpoint exists, updating...");
             return updateEndpoint(endpoint);
         } else {
+            System.out.println("Endpoint doesn't exist, inserting...");
             return insertEndpoint(endpoint);
         }
     }
@@ -41,7 +44,7 @@ public class SageMakerDAO {
     private boolean insertEndpoint(SageMakerEndpoint endpoint) {
         String query = "INSERT INTO sagemaker_endpoints (endpoint_name, endpoint_arn, endpoint_status, " +
                       "model_name, instance_type, instance_count, invocations, model_latency, is_idle, " +
-                      "creation_time, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                      "creation_time, resource_type, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, endpoint.getEndpointName());
@@ -52,12 +55,20 @@ public class SageMakerDAO {
             stmt.setInt(6, endpoint.getInstanceCount());
             stmt.setInt(7, endpoint.getInvocations());
             stmt.setDouble(8, endpoint.getModelLatency());
-            stmt.setBoolean(9, endpoint.isIdle());
+            // Handle null Boolean for isIdle
+            if (endpoint.isIdle() != null) {
+                stmt.setBoolean(9, endpoint.isIdle());
+            } else {
+                stmt.setNull(9, java.sql.Types.BOOLEAN);
+            }
             stmt.setTimestamp(10, endpoint.getCreationTime() != null ? 
                             Timestamp.valueOf(endpoint.getCreationTime()) : null);
-            stmt.setInt(11, endpoint.getUserId());
+            stmt.setString(11, endpoint.getResourceType() != null ? endpoint.getResourceType() : "endpoint");
+            stmt.setInt(12, endpoint.getUserId());
             
-            return stmt.executeUpdate() > 0;
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Inserted SageMaker endpoint, rows affected: " + rowsAffected);
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error inserting SageMaker endpoint: " + e.getMessage());
             e.printStackTrace();
@@ -77,7 +88,12 @@ public class SageMakerDAO {
             stmt.setInt(4, endpoint.getInstanceCount());
             stmt.setInt(5, endpoint.getInvocations());
             stmt.setDouble(6, endpoint.getModelLatency());
-            stmt.setBoolean(7, endpoint.isIdle());
+            // Handle null Boolean for isIdle
+            if (endpoint.isIdle() != null) {
+                stmt.setBoolean(7, endpoint.isIdle());
+            } else {
+                stmt.setNull(7, java.sql.Types.BOOLEAN);
+            }
             stmt.setString(8, endpoint.getEndpointName());
             
             return stmt.executeUpdate() > 0;
@@ -129,6 +145,7 @@ public class SageMakerDAO {
         endpoint.setInvocations(rs.getInt("invocations"));
         endpoint.setModelLatency(rs.getDouble("model_latency"));
         endpoint.setIdle(rs.getBoolean("is_idle"));
+        endpoint.setResourceType(rs.getString("resource_type"));
         
         Timestamp creationTime = rs.getTimestamp("creation_time");
         if (creationTime != null) {

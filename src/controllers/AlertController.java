@@ -5,8 +5,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import models.User;
 import models.Alert;
+import models.User;
 import services.AlertService;
 
 import java.time.LocalDateTime;

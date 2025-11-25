@@ -4,12 +4,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import models.User;
 import models.AWSCredential;
 import dao.*;
 import services.AlertService;
+import services.RuleEvaluationService;
 import aws.AWSClientFactory;
+import aws.BillingService;
 
 /**
  * DashboardController - Main dashboard controller
@@ -54,6 +55,12 @@ public class DashboardController {
     
     @FXML
     private Label costTrendLabel;
+    
+    @FXML
+    private Label totalCreditsHeaderLabel;
+    
+    @FXML
+    private Label totalCreditsLabel;
     
     @FXML
     private VBox contentArea;
@@ -107,7 +114,7 @@ public class DashboardController {
     
     @FXML
     private void initialize() {
-        loadDashboardData();
+        // Don't load data here - currentUser is not set yet
     }
     
     public void setCurrentUser(User user) {
@@ -162,6 +169,12 @@ public class DashboardController {
     
     private void loadDashboardData() {
         try {
+            // Check if currentUser is set
+            if (currentUser == null) {
+                System.err.println("Current user is not set yet");
+                return;
+            }
+            
             // Load resource counts
             int ec2Count = ec2DAO.getTotalEC2Count();
             int rdsCount = rdsDAO.getTotalRDSCount();
@@ -176,8 +189,24 @@ public class DashboardController {
             totalSageMakerLabel.setText(String.valueOf(sageMakerCount));
             totalAlertsLabel.setText(String.valueOf(alertCount));
             
-            // Set cost trend (placeholder)
-            costTrendLabel.setText("$545.75");
+            // Display credits used this month from AWS
+            if (AWSClientFactory.getInstance().isInitialized()) {
+                try {
+                    BillingService billingService = new BillingService();
+                    double monthlyCredits = billingService.getRemainingCredits();
+                    
+                    if (Double.isNaN(monthlyCredits) || monthlyCredits < 0) {
+                        costTrendLabel.setText("$0.00");
+                    } else {
+                        costTrendLabel.setText(String.format("$%.2f", monthlyCredits));
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error fetching credits from AWS: " + e.getMessage());
+                    costTrendLabel.setText("$0.00");
+                }
+            } else {
+                costTrendLabel.setText("$0.00");
+            }
             
         } catch (Exception e) {
             System.err.println("Error loading dashboard data: " + e.getMessage());
@@ -292,8 +321,23 @@ public class DashboardController {
     
     @FXML
     private void handleRefresh() {
+        System.out.println("=== Dashboard Refresh Started ===");
+        
+        // Evaluate all active rules and generate alerts
+        System.out.println("Running rule evaluation...");
+        try {
+            RuleEvaluationService ruleEvaluationService = new RuleEvaluationService();
+            ruleEvaluationService.evaluateAllRules();
+        } catch (Exception e) {
+            System.err.println("Error during rule evaluation: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // Reload dashboard data to reflect any new alerts
         loadDashboardData();
-        showInfo("Dashboard refreshed successfully!");
+        
+        System.out.println("=== Dashboard Refresh Completed ===");
+        showInfo("Dashboard refreshed and rules evaluated successfully!");
     }
     
     private void loadView(String fxmlPath, String title) {

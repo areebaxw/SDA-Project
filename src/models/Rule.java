@@ -15,6 +15,7 @@ public class Rule {
     private String conditionOperator;
     private double conditionValue;
     private int conditionDuration;
+    private String durationUnit;
     private String actionType;
     private boolean isActive;
     private int createdBy;
@@ -95,6 +96,14 @@ public class Rule {
     
     public void setConditionDuration(int conditionDuration) {
         this.conditionDuration = conditionDuration;
+    }
+    
+    public String getDurationUnit() {
+        return durationUnit;
+    }
+    
+    public void setDurationUnit(String durationUnit) {
+        this.durationUnit = durationUnit;
     }
     
     public String getActionType() {

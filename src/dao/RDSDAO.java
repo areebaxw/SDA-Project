@@ -57,7 +57,12 @@ public class RDSDAO {
             stmt.setString(7, instance.getAvailabilityZone());
             stmt.setDouble(8, instance.getCpuUtilization());
             stmt.setInt(9, instance.getDatabaseConnections());
-            stmt.setBoolean(10, instance.isIdle());
+            // Handle null Boolean for isIdle
+            if (instance.isIdle() != null) {
+                stmt.setBoolean(10, instance.isIdle());
+            } else {
+                stmt.setNull(10, java.sql.Types.BOOLEAN);
+            }
             stmt.setInt(11, instance.getUserId());
             
             return stmt.executeUpdate() > 0;
@@ -83,7 +88,12 @@ public class RDSDAO {
             stmt.setString(6, instance.getAvailabilityZone());
             stmt.setDouble(7, instance.getCpuUtilization());
             stmt.setInt(8, instance.getDatabaseConnections());
-            stmt.setBoolean(9, instance.isIdle());
+            // Handle null Boolean for isIdle
+            if (instance.isIdle() != null) {
+                stmt.setBoolean(9, instance.isIdle());
+            } else {
+                stmt.setNull(9, java.sql.Types.BOOLEAN);
+            }
             stmt.setString(10, instance.getDbInstanceIdentifier());
             
             return stmt.executeUpdate() > 0;

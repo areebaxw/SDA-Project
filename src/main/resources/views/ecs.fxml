@@ -37,4 +37,18 @@
             <TableColumn fx:id="idleColumn" text="Idle" prefWidth="60"/>
         </columns>
     </TableView>
+    
+    <!-- Action Buttons -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Actions:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
+        
+        <Button text="Start Service" onAction="#handleStart"
+                style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        
+        <Button text="Stop Service" onAction="#handleStop"
+                style="-fx-background-color: #FF9800; -fx-text-fill: white;"/>
+        
+        <Button text="Delete Service" onAction="#handleDelete"
+                style="-fx-background-color: #f44336; -fx-text-fill: white;"/>
+    </HBox>
 </VBox>

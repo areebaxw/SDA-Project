@@ -19,20 +19,28 @@ public class SageMakerAWSService {
     }
     
     /**
-     * Get all SageMaker endpoints
+     * Get all SageMaker endpoints and notebook instances
      */
     public List<SageMakerEndpoint> getAllEndpoints() {
-        List<SageMakerEndpoint> endpoints = new ArrayList<>();
+        List<SageMakerEndpoint> resources = new ArrayList<>();
         
         try {
-            ListEndpointsRequest request = ListEndpointsRequest.builder().build();
-            ListEndpointsResponse response = sageMakerClient.listEndpoints(request);
+            System.out.println("Fetching SageMaker endpoints from AWS...");
             
-            for (EndpointSummary summary : response.endpoints()) {
+            // Fetch endpoints
+            ListEndpointsRequest endpointRequest = ListEndpointsRequest.builder().build();
+            ListEndpointsResponse endpointResponse = sageMakerClient.listEndpoints(endpointRequest);
+            
+            System.out.println("AWS returned " + endpointResponse.endpoints().size() + " endpoints");
+            
+            for (EndpointSummary summary : endpointResponse.endpoints()) {
+                System.out.println("Processing endpoint: " + summary.endpointName());
+                
                 SageMakerEndpoint endpoint = new SageMakerEndpoint();
                 endpoint.setEndpointName(summary.endpointName());
                 endpoint.setEndpointArn(summary.endpointArn());
                 endpoint.setEndpointStatus(summary.endpointStatus().toString());
+                endpoint.setResourceType("endpoint");
                 
                 if (summary.creationTime() != null) {
                     endpoint.setCreationTime(
@@ -53,16 +61,44 @@ public class SageMakerAWSService {
                     endpoint.setInstanceCount(variant.currentInstanceCount());
                 }
                 
-                endpoints.add(endpoint);
+                resources.add(endpoint);
             }
             
-            System.out.println("Retrieved " + endpoints.size() + " SageMaker endpoints from AWS");
+            // Fetch notebook instances
+            System.out.println("Fetching SageMaker notebook instances from AWS...");
+            ListNotebookInstancesRequest notebookRequest = ListNotebookInstancesRequest.builder().build();
+            ListNotebookInstancesResponse notebookResponse = sageMakerClient.listNotebookInstances(notebookRequest);
+            
+            System.out.println("AWS returned " + notebookResponse.notebookInstances().size() + " notebook instances");
+            
+            for (NotebookInstanceSummary summary : notebookResponse.notebookInstances()) {
+                System.out.println("Processing notebook: " + summary.notebookInstanceName());
+                
+                SageMakerEndpoint notebook = new SageMakerEndpoint();
+                notebook.setEndpointName(summary.notebookInstanceName());
+                notebook.setEndpointArn(summary.notebookInstanceArn());
+                notebook.setEndpointStatus(summary.notebookInstanceStatus().toString());
+                notebook.setResourceType("notebook");
+                notebook.setInstanceType(summary.instanceType().toString());
+                
+                if (summary.creationTime() != null) {
+                    notebook.setCreationTime(
+                        summary.creationTime().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                    );
+                }
+                
+                resources.add(notebook);
+            }
+            
+            System.out.println("Retrieved " + resources.size() + " SageMaker resources from AWS (" + 
+                             endpointResponse.endpoints().size() + " endpoints, " + 
+                             notebookResponse.notebookInstances().size() + " notebooks)");
         } catch (Exception e) {
-            System.err.println("Error retrieving SageMaker endpoints: " + e.getMessage());
+            System.err.println("Error retrieving SageMaker resources: " + e.getMessage());
             e.printStackTrace();
         }
         
-        return endpoints;
+        return resources;
     }
     
     /**
@@ -115,6 +151,63 @@ public class SageMakerAWSService {
             return true;
         } catch (Exception e) {
             System.err.println("Error deleting SageMaker endpoint: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Stop notebook instance
+     */
+    public boolean stopNotebookInstance(String notebookInstanceName) {
+        try {
+            StopNotebookInstanceRequest request = StopNotebookInstanceRequest.builder()
+                    .notebookInstanceName(notebookInstanceName)
+                    .build();
+            
+            sageMakerClient.stopNotebookInstance(request);
+            System.out.println("Stopped SageMaker notebook instance: " + notebookInstanceName);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error stopping SageMaker notebook: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Start notebook instance
+     */
+    public boolean startNotebookInstance(String notebookInstanceName) {
+        try {
+            StartNotebookInstanceRequest request = StartNotebookInstanceRequest.builder()
+                    .notebookInstanceName(notebookInstanceName)
+                    .build();
+            
+            sageMakerClient.startNotebookInstance(request);
+            System.out.println("Started SageMaker notebook instance: " + notebookInstanceName);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error starting SageMaker notebook: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Delete notebook instance
+     */
+    public boolean deleteNotebookInstance(String notebookInstanceName) {
+        try {
+            DeleteNotebookInstanceRequest request = DeleteNotebookInstanceRequest.builder()
+                    .notebookInstanceName(notebookInstanceName)
+                    .build();
+            
+            sageMakerClient.deleteNotebookInstance(request);
+            System.out.println("Deleted SageMaker notebook instance: " + notebookInstanceName);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error deleting SageMaker notebook: " + e.getMessage());
             e.printStackTrace();
         }
         return false;

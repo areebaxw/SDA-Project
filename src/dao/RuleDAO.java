@@ -82,8 +82,8 @@ public class RuleDAO {
      */
     public boolean createRule(Rule rule) {
         String query = "INSERT INTO rules (rule_name, rule_type, resource_type, condition_metric, " +
-                      "condition_operator, condition_value, condition_duration, action_type, is_active, created_by) " +
-                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                      "condition_operator, condition_value, condition_duration, duration_unit, action_type, is_active, created_by) " +
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, rule.getRuleName());
@@ -93,9 +93,10 @@ public class RuleDAO {
             stmt.setString(5, rule.getConditionOperator());
             stmt.setDouble(6, rule.getConditionValue());
             stmt.setInt(7, rule.getConditionDuration());
-            stmt.setString(8, rule.getActionType());
-            stmt.setBoolean(9, rule.isActive());
-            stmt.setInt(10, rule.getCreatedBy());
+            stmt.setString(8, rule.getDurationUnit());
+            stmt.setString(9, rule.getActionType());
+            stmt.setBoolean(10, rule.isActive());
+            stmt.setInt(11, rule.getCreatedBy());
             
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
@@ -180,6 +181,7 @@ public class RuleDAO {
         rule.setConditionOperator(rs.getString("condition_operator"));
         rule.setConditionValue(rs.getDouble("condition_value"));
         rule.setConditionDuration(rs.getInt("condition_duration"));
+        rule.setDurationUnit(rs.getString("duration_unit"));
         rule.setActionType(rs.getString("action_type"));
         rule.setActive(rs.getBoolean("is_active"));
         rule.setCreatedBy(rs.getInt("created_by"));

@@ -78,8 +78,11 @@
                 <Label text="Value:"/>
                 <TextField fx:id="valueField" promptText="e.g., 5.0"/>
                 
-                <Label text="Duration (days):"/>
-                <TextField fx:id="durationField" promptText="e.g., 7"/>
+                <Label text="Duration:"/>
+                <HBox spacing="10">
+                    <TextField fx:id="durationField" promptText="e.g., 7" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="durationUnitCombo" promptText="Unit" prefWidth="100"/>
+                </HBox>
                 
                 <Region VBox.vgrow="ALWAYS" minHeight="20"/>
                 

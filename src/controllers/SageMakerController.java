@@ -94,17 +94,33 @@ public class SageMakerController {
     @FXML
     private void handleSyncFromAWS() {
         try {
+            System.out.println("Starting SageMaker sync from AWS...");
+            
             List<SageMakerEndpoint> endpoints = sageMakerAWSService.getAllEndpoints();
             
+            System.out.println("Retrieved " + endpoints.size() + " SageMaker endpoints from AWS");
+            
+            int savedCount = 0;
             for (SageMakerEndpoint endpoint : endpoints) {
                 endpoint.setUserId(currentUser.getUserId());
-                sageMakerDAO.saveOrUpdateEndpoint(endpoint);
+                System.out.println("Saving endpoint: " + endpoint.getEndpointName() + " - Status: " + endpoint.getEndpointStatus());
+                if (sageMakerDAO.saveOrUpdateEndpoint(endpoint)) {
+                    savedCount++;
+                }
             }
             
+            System.out.println("Saved " + savedCount + " SageMaker endpoints to database");
+            
             loadSageMakerEndpoints();
-            showInfo("Synced " + endpoints.size() + " SageMaker endpoints from AWS");
+            
+            if (savedCount > 0) {
+                showInfo("Synced " + savedCount + " SageMaker endpoints from AWS");
+            } else {
+                showInfo("No SageMaker endpoints found in your AWS account.");
+            }
         } catch (Exception e) {
             System.err.println("Error syncing SageMaker endpoints: " + e.getMessage());
+            e.printStackTrace();
             showError("Error syncing from AWS: " + e.getMessage());
         }
     }
@@ -121,9 +137,96 @@ public class SageMakerController {
         }
     }
     
+    @FXML
+    private void handleStart() {
+        SageMakerEndpoint selected = sageMakerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select a SageMaker resource");
+            return;
+        }
+        
+        if ("notebook".equals(selected.getResourceType())) {
+            boolean success = sageMakerAWSService.startNotebookInstance(selected.getEndpointName());
+            if (success) {
+                showInfo("Notebook instance " + selected.getEndpointName() + " is starting");
+                handleRefresh();
+            } else {
+                showError("Failed to start notebook instance");
+            }
+        } else {
+            showWarning("Only notebook instances can be started. Endpoints are always running.");
+        }
+    }
+    
+    @FXML
+    private void handleStop() {
+        SageMakerEndpoint selected = sageMakerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select a SageMaker resource");
+            return;
+        }
+        
+        if ("notebook".equals(selected.getResourceType())) {
+            Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmation.setTitle("Confirm Stop");
+            confirmation.setHeaderText("Stop Notebook Instance");
+            confirmation.setContentText("Are you sure you want to stop " + selected.getEndpointName() + "?");
+            
+            if (confirmation.showAndWait().get() == ButtonType.OK) {
+                boolean success = sageMakerAWSService.stopNotebookInstance(selected.getEndpointName());
+                if (success) {
+                    showInfo("Notebook instance " + selected.getEndpointName() + " is stopping");
+                    handleRefresh();
+                } else {
+                    showError("Failed to stop notebook instance");
+                }
+            }
+        } else {
+            showWarning("Only notebook instances can be stopped. To stop an endpoint, delete it.");
+        }
+    }
+    
+    @FXML
+    private void handleDelete() {
+        SageMakerEndpoint selected = sageMakerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select a SageMaker resource");
+            return;
+        }
+        
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Delete");
+        confirmation.setHeaderText("Delete SageMaker Resource");
+        confirmation.setContentText("⚠️ WARNING: This will PERMANENTLY DELETE " + selected.getEndpointName() + "!\nAre you sure?");
+        
+        if (confirmation.showAndWait().get() == ButtonType.OK) {
+            boolean success;
+            if ("notebook".equals(selected.getResourceType())) {
+                success = sageMakerAWSService.deleteNotebookInstance(selected.getEndpointName());
+            } else {
+                success = sageMakerAWSService.deleteEndpoint(selected.getEndpointName());
+            }
+            
+            if (success) {
+                showInfo("SageMaker resource " + selected.getEndpointName() + " is being deleted");
+                handleRefresh();
+            } else {
+                showError("Failed to delete SageMaker resource");
+            }
+        }
+    }
+    
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

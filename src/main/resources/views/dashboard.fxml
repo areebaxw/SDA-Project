@@ -48,8 +48,13 @@
                 </VBox>
                 
                 <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="costHeaderLabel" text="Monthly Cost" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
+                    <Label fx:id="costHeaderLabel" text="Credits Used This Month" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
                     <Label fx:id="costTrendLabel" text="\$0.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+                
+                <VBox alignment="CENTER" spacing="5">
+                    <Label fx:id="totalCreditsHeaderLabel" text="Total Credits" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
+                    <Label fx:id="totalCreditsLabel" text="\$100.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
                 </VBox>
             </HBox>
         </VBox>

@@ -55,7 +55,12 @@ public class ECSDAO {
             stmt.setString(8, service.getTaskDefinition());
             stmt.setDouble(9, service.getCpuUtilization());
             stmt.setDouble(10, service.getMemoryUtilization());
-            stmt.setBoolean(11, service.isIdle());
+            // Handle null Boolean for isIdle
+            if (service.isIdle() != null) {
+                stmt.setBoolean(11, service.isIdle());
+            } else {
+                stmt.setNull(11, java.sql.Types.BOOLEAN);
+            }
             stmt.setInt(12, service.getUserId());
             
             return stmt.executeUpdate() > 0;
@@ -79,7 +84,12 @@ public class ECSDAO {
             stmt.setString(5, service.getTaskDefinition());
             stmt.setDouble(6, service.getCpuUtilization());
             stmt.setDouble(7, service.getMemoryUtilization());
-            stmt.setBoolean(8, service.isIdle());
+            // Handle null Boolean for isIdle
+            if (service.isIdle() != null) {
+                stmt.setBoolean(8, service.isIdle());
+            } else {
+                stmt.setNull(8, java.sql.Types.BOOLEAN);
+            }
             stmt.setString(9, service.getClusterName());
             stmt.setString(10, service.getServiceName());
             

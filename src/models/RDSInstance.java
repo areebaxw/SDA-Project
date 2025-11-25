@@ -17,7 +17,7 @@ public class RDSInstance {
     private String availabilityZone;
     private double cpuUtilization;
     private int databaseConnections;
-    private boolean isIdle;
+    private Boolean isIdle;
     private LocalDateTime lastChecked;
     private int userId;
     
@@ -111,11 +111,11 @@ public class RDSInstance {
         this.databaseConnections = databaseConnections;
     }
     
-    public boolean isIdle() {
+    public Boolean isIdle() {
         return isIdle;
     }
     
-    public void setIdle(boolean idle) {
+    public void setIdle(Boolean idle) {
         isIdle = idle;
     }
     

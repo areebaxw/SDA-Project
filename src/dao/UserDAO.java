@@ -3,7 +3,6 @@ package dao;
 import database.DBConnection;
 import models.User;
 import java.sql.*;
-import java.time.LocalDateTime;
 
 /**
  * UserDAO - Data Access Object for User operations

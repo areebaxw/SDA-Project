@@ -120,4 +120,29 @@ public class RDSService {
         }
         return false;
     }
+    
+    /**
+     * Delete RDS instance
+     */
+    public boolean deleteDBInstance(String dbInstanceIdentifier, boolean skipFinalSnapshot) {
+        try {
+            DeleteDbInstanceRequest.Builder requestBuilder = DeleteDbInstanceRequest.builder()
+                    .dbInstanceIdentifier(dbInstanceIdentifier)
+                    .skipFinalSnapshot(skipFinalSnapshot);
+            
+            // If not skipping final snapshot, provide a snapshot identifier
+            if (!skipFinalSnapshot) {
+                String snapshotId = dbInstanceIdentifier + "-final-" + System.currentTimeMillis();
+                requestBuilder.finalDBSnapshotIdentifier(snapshotId);
+            }
+            
+            rdsClient.deleteDBInstance(requestBuilder.build());
+            System.out.println("Deleted RDS instance: " + dbInstanceIdentifier);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error deleting RDS instance: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

@@ -24,6 +24,7 @@ CREATE TABLE aws_credentials (
     access_key VARCHAR(255) NOT NULL,
     secret_key VARCHAR(255) NOT NULL,
     region VARCHAR(50) NOT NULL,
+    remaining_credits DOUBLE DEFAULT 0.0,
     is_active BOOLEAN DEFAULT TRUE,
     validated BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -41,6 +42,7 @@ CREATE TABLE rules (
     condition_operator VARCHAR(20),
     condition_value DOUBLE,
     condition_duration INT,
+    duration_unit VARCHAR(20) DEFAULT 'hours',
     action_type VARCHAR(50),
     is_active BOOLEAN DEFAULT TRUE,
     created_by INT,
@@ -132,6 +134,7 @@ CREATE TABLE sagemaker_endpoints (
     is_idle BOOLEAN DEFAULT FALSE,
     creation_time TIMESTAMP NULL,
     last_checked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resource_type VARCHAR(20) DEFAULT 'endpoint',
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );

@@ -5,8 +5,6 @@ import software.amazon.awssdk.services.cloudwatch.model.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * CloudWatchService - AWS CloudWatch operations wrapper

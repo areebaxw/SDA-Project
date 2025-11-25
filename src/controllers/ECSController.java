@@ -110,9 +110,95 @@ public class ECSController {
         }
     }
     
+    @FXML
+    private void handleStart() {
+        ECSService selected = ecsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an ECS service");
+            return;
+        }
+        
+        // Prompt for desired count
+        TextInputDialog dialog = new TextInputDialog("1");
+        dialog.setTitle("Start ECS Service");
+        dialog.setHeaderText("Start ECS Service: " + selected.getServiceName());
+        dialog.setContentText("Enter desired task count:");
+        
+        dialog.showAndWait().ifPresent(count -> {
+            try {
+                int desiredCount = Integer.parseInt(count);
+                boolean success = ecsAWSService.startService(selected.getClusterName(), selected.getServiceName(), desiredCount);
+                if (success) {
+                    showInfo("ECS service " + selected.getServiceName() + " is starting with " + desiredCount + " tasks");
+                    handleRefresh();
+                } else {
+                    showError("Failed to start ECS service");
+                }
+            } catch (NumberFormatException e) {
+                showError("Invalid number format");
+            }
+        });
+    }
+    
+    @FXML
+    private void handleStop() {
+        ECSService selected = ecsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an ECS service");
+            return;
+        }
+        
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Stop");
+        confirmation.setHeaderText("Stop ECS Service");
+        confirmation.setContentText("Are you sure you want to stop " + selected.getServiceName() + "? This will set desired count to 0.");
+        
+        if (confirmation.showAndWait().get() == ButtonType.OK) {
+            boolean success = ecsAWSService.stopService(selected.getClusterName(), selected.getServiceName());
+            if (success) {
+                showInfo("ECS service " + selected.getServiceName() + " is stopping");
+                handleRefresh();
+            } else {
+                showError("Failed to stop ECS service");
+            }
+        }
+    }
+    
+    @FXML
+    private void handleDelete() {
+        ECSService selected = ecsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showWarning("Please select an ECS service");
+            return;
+        }
+        
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Delete");
+        confirmation.setHeaderText("Delete ECS Service");
+        confirmation.setContentText("⚠️ WARNING: This will PERMANENTLY DELETE " + selected.getServiceName() + "!\nAre you sure?");
+        
+        if (confirmation.showAndWait().get() == ButtonType.OK) {
+            boolean success = ecsAWSService.deleteService(selected.getClusterName(), selected.getServiceName());
+            if (success) {
+                showInfo("ECS service " + selected.getServiceName() + " is being deleted");
+                handleRefresh();
+            } else {
+                showError("Failed to delete ECS service");
+            }
+        }
+    }
+    
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
