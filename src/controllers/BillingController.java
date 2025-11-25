@@ -198,11 +198,10 @@ public class BillingController {
             
             System.out.println("Syncing billing data from " + startDate + " to " + endDate);
             
-            // ✅ FIXED: Delegate ALL sync logic to service
-            // Service handles: fetch from AWS, save to DB, count results
+           
             int savedCount = billingService.syncFromAWS(startDate, endDate, currentUser.getUserId());
             
-            // ✅ CORRECT: Controller only reloads UI
+       
             loadBillingRecords();
             
             if (savedCount > 0) {

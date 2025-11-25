@@ -112,11 +112,10 @@ public class EC2Controller {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            // ✅ CORRECT: Delegate ALL sync logic to service
-            // Service handles: fetch from AWS, get metrics, save to DB
+           
             int syncedCount = ec2Service.syncFromAWS(currentUser.getUserId());
             
-            // ✅ CORRECT: Controller only reloads UI
+        
             loadEC2Instances();
             showInfo("Synced " + syncedCount + " EC2 instances from AWS");
         } catch (Exception e) {

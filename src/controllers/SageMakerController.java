@@ -94,11 +94,10 @@ public class SageMakerController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            // ✅ FIXED: Delegate ALL sync logic to service
-            // Service handles: fetch from AWS, set user, save to DB, count results
+          
             int syncedCount = sageMakerAWSService.syncFromAWS(currentUser.getUserId());
             
-            // ✅ CORRECT: Controller only reloads UI
+          
             loadSageMakerEndpoints();
             
             if (syncedCount > 0) {

@@ -102,11 +102,10 @@ public class RDSController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            // ✅ FIXED: Delegate ALL sync logic to service
-            // Service handles: fetch from AWS, set user, save to DB
+          
             int syncedCount = rdsService.syncFromAWS(currentUser.getUserId());
             
-            // ✅ CORRECT: Controller only reloads UI
+      
             loadRDSInstances();
             showInfo("Synced " + syncedCount + " RDS instances from AWS");
         } catch (Exception e) {

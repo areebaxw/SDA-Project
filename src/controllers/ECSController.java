@@ -95,11 +95,10 @@ public class ECSController {
     @FXML
     private void handleSyncFromAWS() {
         try {
-            // ✅ FIXED: Delegate ALL sync logic to service
-            // Service handles: fetch from AWS, set user, save to DB
+           
             int syncedCount = ecsAWSService.syncFromAWS(currentUser.getUserId());
             
-            // ✅ CORRECT: Controller only reloads UI
+         
             loadECSServices();
             showInfo("Synced " + syncedCount + " ECS services from AWS");
         } catch (Exception e) {
