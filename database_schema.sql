@@ -21,7 +21,7 @@ CREATE TABLE users (
 CREATE TABLE aws_credentials (
     credential_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    access_key VARCHAR(255) NOT NULL,
+    access_key VARCHAR(255) UNIQUE NOT NULL,
     secret_key VARCHAR(255) NOT NULL,
     region VARCHAR(50) NOT NULL,
     remaining_credits DOUBLE DEFAULT 0.0,

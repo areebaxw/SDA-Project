@@ -109,48 +109,49 @@ public class BillingController {
     @FXML
     private void handleRefresh() {
         loadBillingRecords();
-        showInfo("Billing records refreshed!");
+        showInfo("Billing records refreshed from AWS!");
     }
     
     private void loadBillingRecords() {
         if (currentUser == null) return;
         
+        if (!AWSClientFactory.getInstance().isInitialized()) {
+            showError("AWS credentials not configured. Please configure your AWS credentials first.");
+            return;
+        }
+        
         try {
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             
-            System.out.println("Loading billing records from " + startDate + " to " + endDate);
+            System.out.println("Loading billing records from AWS for date range: " + startDate + " to " + endDate);
             
-            List<BillingRecord> records = billingDAO.getBillingRecordsByDateRange(
-                currentUser.getUserId(),
-                Date.valueOf(startDate),
-                Date.valueOf(endDate)
-            );
+            // Fetch actual cost data directly from AWS Cost Explorer
+            List<BillingRecord> records = billingService.getCostAndUsage(startDate, endDate, currentUser.getUserId());
             
-            System.out.println("Found " + records.size() + " records in database");
+            System.out.println("Received " + records.size() + " records from AWS");
             
             billingData.clear();
             billingData.addAll(records);
             
             System.out.println("Table now has " + billingData.size() + " items");
             
-            // Calculate total cost
-            double totalCost = billingDAO.getTotalCost(
-                currentUser.getUserId(),
-                Date.valueOf(startDate),
-                Date.valueOf(endDate)
-            );
+            // Calculate total cost from AWS records
+            double totalCost = 0.0;
+            for (BillingRecord record : records) {
+                totalCost += record.getCostAmount();
+            }
             
             totalCostLabel.setText(String.format("$%.4f", totalCost));
             
-            // Update pie chart
-            updateCostChart(startDate, endDate);
+            // Update pie chart with AWS data
+            updateCostChartFromRecords(records);
             
-            System.out.println("Loaded " + records.size() + " billing records");
+            System.out.println("Loaded " + records.size() + " billing records from AWS with total cost: $" + String.format("%.4f", totalCost));
         } catch (Exception e) {
-            System.err.println("Error loading billing records: " + e.getMessage());
+            System.err.println("Error loading billing records from AWS: " + e.getMessage());
             e.printStackTrace();
-            showError("Error loading billing records");
+            showError("Error loading billing records from AWS: " + e.getMessage() + "\nNote: AWS Cost Explorer may have a 24-48 hour delay.");
         }
     }
     
@@ -174,6 +175,23 @@ public class BillingController {
             costPieChart.setData(pieChartData);
         } catch (Exception e) {
             System.err.println("Error updating cost chart: " + e.getMessage());
+        }
+    }
+    
+    private void updateCostChartFromRecords(List<BillingRecord> records) {
+        try {
+            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+            
+            for (BillingRecord record : records) {
+                pieChartData.add(new PieChart.Data(
+                    record.getServiceName() + " ($" + String.format("%.4f", record.getCostAmount()) + ")",
+                    record.getCostAmount()
+                ));
+            }
+            
+            costPieChart.setData(pieChartData);
+        } catch (Exception e) {
+            System.err.println("Error updating cost chart from records: " + e.getMessage());
         }
     }
     

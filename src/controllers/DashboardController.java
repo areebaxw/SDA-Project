@@ -63,6 +63,12 @@ public class DashboardController {
     private Label totalCreditsLabel;
     
     @FXML
+    private Label remainingCreditsHeaderLabel;
+    
+    @FXML
+    private Label remainingCreditsLabel;
+    
+    @FXML
     private VBox contentArea;
     
     // Button references
@@ -190,23 +196,66 @@ public class DashboardController {
             totalAlertsLabel.setText(String.valueOf(alertCount));
             
             // Display credits used this month from AWS
+            double monthlyCreditsUsed = 0.0;
+            double totalCreditsUsed = 0.0;
+            
+            System.out.println("=== Loading Billing Data ===");
+            System.out.println("AWS Client Initialized: " + AWSClientFactory.getInstance().isInitialized());
+            
             if (AWSClientFactory.getInstance().isInitialized()) {
                 try {
                     BillingService billingService = new BillingService();
-                    double monthlyCredits = billingService.getRemainingCredits();
                     
-                    if (Double.isNaN(monthlyCredits) || monthlyCredits < 0) {
-                        costTrendLabel.setText("$0.00");
-                    } else {
-                        costTrendLabel.setText(String.format("$%.2f", monthlyCredits));
+                    // Get credits used this month
+                    System.out.println("Fetching month-to-date cost...");
+                    monthlyCreditsUsed = billingService.getMonthToDateCost();
+                    System.out.println("Month-to-date cost returned: $" + monthlyCreditsUsed);
+                    
+                    if (Double.isNaN(monthlyCreditsUsed) || monthlyCreditsUsed < 0) {
+                        monthlyCreditsUsed = 0.0;
                     }
+                    costTrendLabel.setText(String.format("$%.2f", monthlyCreditsUsed));
+                    
+                    // Get total credits used all time (last 12 months)
+                    System.out.println("Fetching total credits used all time...");
+                    totalCreditsUsed = billingService.getTotalCreditsUsedAllTime();
+                    System.out.println("Total credits used returned: $" + totalCreditsUsed);
+                    
+                    if (Double.isNaN(totalCreditsUsed) || totalCreditsUsed < 0) {
+                        totalCreditsUsed = 0.0;
+                    }
+                    totalCreditsLabel.setText(String.format("$%.2f", totalCreditsUsed));
+                    
                 } catch (Exception e) {
                     System.err.println("Error fetching credits from AWS: " + e.getMessage());
+                    e.printStackTrace();
                     costTrendLabel.setText("$0.00");
+                    totalCreditsLabel.setText("$0.00");
+                    monthlyCreditsUsed = 0.0;
+                    totalCreditsUsed = 0.0;
                 }
             } else {
+                System.out.println("AWS Client not initialized - showing $0.00");
                 costTrendLabel.setText("$0.00");
+                totalCreditsLabel.setText("$0.00");
+                monthlyCreditsUsed = 0.0;
+                totalCreditsUsed = 0.0;
             }
+            
+            // Calculate remaining credits: $100 Free Tier - total credits used
+            double remainingCredits = 100.0 - totalCreditsUsed;
+            if (remainingCredits < 0) {
+                remainingCredits = 0.0;
+                // Change color to red if credits exhausted
+                remainingCreditsLabel.setStyle("-fx-text-fill: #FF5252; -fx-font-size: 24px; -fx-font-weight: bold;");
+            } else if (remainingCredits < 20) {
+                // Change color to orange if credits are low
+                remainingCreditsLabel.setStyle("-fx-text-fill: #FFA726; -fx-font-size: 24px; -fx-font-weight: bold;");
+            } else {
+                // Green for healthy credits
+                remainingCreditsLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 24px; -fx-font-weight: bold;");
+            }
+            remainingCreditsLabel.setText(String.format("$%.2f", remainingCredits));
             
         } catch (Exception e) {
             System.err.println("Error loading dashboard data: " + e.getMessage());

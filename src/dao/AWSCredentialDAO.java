@@ -131,6 +131,25 @@ public class AWSCredentialDAO {
     }
     
     /**
+     * Check if AWS access key already exists
+     */
+    public boolean accessKeyExists(String accessKey) {
+        String query = "SELECT COUNT(*) FROM aws_credentials WHERE access_key = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, accessKey);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking access key: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    /**
      * Map ResultSet to AWSCredential object
      */
     private AWSCredential mapResultSetToCredential(ResultSet rs) throws SQLException {

@@ -40,24 +40,30 @@ public class BillingService {
                     .end(apiEndDate.format(formatter))
                     .build();
             
-            GroupDefinition groupDefinition = GroupDefinition.builder()
+            // Group by both SERVICE and RECORD_TYPE to filter actual usage costs
+            GroupDefinition serviceGroupDefinition = GroupDefinition.builder()
                     .type(GroupDefinitionType.DIMENSION)
                     .key("SERVICE")
+                    .build();
+            
+            GroupDefinition recordTypeGroupDefinition = GroupDefinition.builder()
+                    .type(GroupDefinitionType.DIMENSION)
+                    .key("RECORD_TYPE")
                     .build();
             
             // Use DAILY granularity and aggregate ourselves to get accurate month-to-date totals
             GetCostAndUsageRequest request = GetCostAndUsageRequest.builder()
                     .timePeriod(dateInterval)
                     .granularity(Granularity.DAILY)
-                    .metrics("UnblendedCost", "BlendedCost")
-                    .groupBy(groupDefinition)
+                    .metrics("UnblendedCost")
+                    .groupBy(serviceGroupDefinition, recordTypeGroupDefinition)
                     .build();
             
             GetCostAndUsageResponse response = costExplorerClient.getCostAndUsage(request);
             
             System.out.println("AWS returned " + response.resultsByTime().size() + " time periods");
             
-            // Aggregate costs by service across all days
+            
             Map<String, Double> serviceCostMap = new HashMap<>();
             LocalDate periodStart = startDate;
             LocalDate periodEnd = endDate;
@@ -67,28 +73,26 @@ public class BillingService {
                 System.out.println("  Number of groups: " + resultByTime.groups().size());
                 
                 for (Group group : resultByTime.groups()) {
+                    // group.keys() contains [SERVICE_NAME, RECORD_TYPE]
                     String serviceName = group.keys().get(0);
+                    String recordType = group.keys().size() > 1 ? group.keys().get(1) : "Unknown";
                     
                     // Debug: Print all available metrics
-                    System.out.println("  Service: " + serviceName);
+                    System.out.println("  Service: " + serviceName + ", RecordType: " + recordType);
                     System.out.println("    Available metrics: " + group.metrics().keySet());
                     
-                    // Try UnblendedCost first, then BlendedCost if not available
+                    // Only count "Usage" costs (actual usage, excluding credits, refunds, etc.)
                     double cost = 0.0;
-                    if (group.metrics().containsKey("UnblendedCost")) {
+                    if ("Usage".equalsIgnoreCase(recordType) && group.metrics().containsKey("UnblendedCost")) {
                         String costStr = group.metrics().get("UnblendedCost").amount();
                         cost = Double.parseDouble(costStr);
-                        System.out.println("    UnblendedCost: " + costStr + " -> parsed: " + cost);
-                    } else if (group.metrics().containsKey("BlendedCost")) {
-                        String costStr = group.metrics().get("BlendedCost").amount();
-                        cost = Double.parseDouble(costStr);
-                        System.out.println("    BlendedCost: " + costStr + " -> parsed: " + cost);
+                        System.out.println("    Actual Usage Cost: " + costStr + " -> parsed: " + cost);
+                        
+                        serviceCostMap.put(serviceName, 
+                            serviceCostMap.getOrDefault(serviceName, 0.0) + cost);
                     } else {
-                        System.out.println("    WARNING: No cost metric found!");
+                        System.out.println("    Skipping non-usage record type: " + recordType);
                     }
-                    
-                    serviceCostMap.put(serviceName, 
-                        serviceCostMap.getOrDefault(serviceName, 0.0) + cost);
                 }
             }
             
@@ -212,9 +216,7 @@ public class BillingService {
         return trendMap;
     }
     
-    /**
-     * Get remaining AWS credits for current month
-     */
+
     public double getRemainingCredits() {
         try {
             LocalDate endDate = LocalDate.now().plusDays(1);
@@ -258,38 +260,132 @@ public class BillingService {
     }
     
     /**
-     * Get actual costs (excluding credits) for current month
+     * Get total credits used since the beginning of the AWS Free Tier (last 12 months)
+     * AWS Free Tier is valid for 12 months from account creation
+     * Groups by RECORD_TYPE to get only "Usage" costs (before credits)
      */
-    public double getMonthToDateCost() {
+    public double getTotalCreditsUsedAllTime() {
         try {
-            LocalDate startDate = LocalDate.now().withDayOfMonth(1);
-            LocalDate endDate = LocalDate.now().plusDays(1);
+            LocalDate today = LocalDate.now();
+            LocalDate endDate = today.plusDays(1);
+            LocalDate startDate = today.minusMonths(12).withDayOfMonth(1);
+            
+            System.out.println("getTotalCreditsUsedAllTime: Querying from " + startDate + " to " + endDate);
             
             DateInterval dateInterval = DateInterval.builder()
                     .start(startDate.format(formatter))
                     .end(endDate.format(formatter))
                     .build();
             
+            // Group by RECORD_TYPE to separate Usage from Credits
             GetCostAndUsageRequest request = GetCostAndUsageRequest.builder()
                     .timePeriod(dateInterval)
                     .granularity(Granularity.MONTHLY)
                     .metrics("UnblendedCost")
+                    .groupBy(GroupDefinition.builder()
+                            .type(GroupDefinitionType.DIMENSION)
+                            .key("RECORD_TYPE")
+                            .build())
                     .build();
             
             GetCostAndUsageResponse response = costExplorerClient.getCostAndUsage(request);
             
-            double totalCost = 0.0;
+            System.out.println("API returned " + response.resultsByTime().size() + " monthly periods");
+            
+            double totalUsageCost = 0.0;
             for (ResultByTime resultByTime : response.resultsByTime()) {
-                if (resultByTime.total().containsKey("UnblendedCost")) {
-                    double cost = Double.parseDouble(
-                        resultByTime.total().get("UnblendedCost").amount()
-                    );
-                    totalCost += cost;
+                String period = resultByTime.timePeriod().start();
+                
+                // Process each group (grouped by RECORD_TYPE)
+                for (Group group : resultByTime.groups()) {
+                    String recordType = group.keys().get(0);
+                    double cost = 0.0;
+                    
+                    if (group.metrics().containsKey("UnblendedCost")) {
+                        cost = Double.parseDouble(group.metrics().get("UnblendedCost").amount());
+                    }
+                    
+                    System.out.println("Period: " + period + " | RecordType: " + recordType + " -> $" + String.format("%.4f", cost));
+                    
+                    // Only count "Usage" costs (not Credits, Refunds, etc.)
+                    if ("Usage".equalsIgnoreCase(recordType) && cost > 0) {
+                        totalUsageCost += cost;
+                    }
                 }
             }
             
-            System.out.println("Month-to-date total cost: $" + String.format("%.4f", totalCost));
-            return totalCost;
+            System.out.println("Total USAGE cost (all time): $" + String.format("%.2f", totalUsageCost));
+            return totalUsageCost;
+        } catch (Exception e) {
+            System.err.println("Error getting total credits used: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+    
+    /**
+     * Get actual costs (excluding credits) for current month
+     * Note: AWS Cost Explorer data has 24-48 hour delay
+     */
+    public double getMonthToDateCost() {
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDate startDate = today.withDayOfMonth(1);
+            LocalDate endDate = today.plusDays(1);
+            
+            // If it's the first day of the month, get last month's data
+            if (today.getDayOfMonth() == 1) {
+                startDate = today.minusMonths(1).withDayOfMonth(1);
+                endDate = today;
+                System.out.println("First day of month - fetching last month's data instead");
+            }
+            
+            System.out.println("getMonthToDateCost: Querying from " + startDate + " to " + endDate);
+            
+            DateInterval dateInterval = DateInterval.builder()
+                    .start(startDate.format(formatter))
+                    .end(endDate.format(formatter))
+                    .build();
+            
+            // Group by RECORD_TYPE to separate Usage from Credits
+            GetCostAndUsageRequest request = GetCostAndUsageRequest.builder()
+                    .timePeriod(dateInterval)
+                    .granularity(Granularity.MONTHLY)
+                    .metrics("UnblendedCost")
+                    .groupBy(GroupDefinition.builder()
+                            .type(GroupDefinitionType.DIMENSION)
+                            .key("RECORD_TYPE")
+                            .build())
+                    .build();
+            
+            GetCostAndUsageResponse response = costExplorerClient.getCostAndUsage(request);
+            
+            System.out.println("API returned " + response.resultsByTime().size() + " time periods");
+            
+            double usageCost = 0.0;
+            for (ResultByTime resultByTime : response.resultsByTime()) {
+                System.out.println("Period: " + resultByTime.timePeriod().start() + " to " + resultByTime.timePeriod().end());
+                
+                // Process each group (grouped by RECORD_TYPE)
+                for (Group group : resultByTime.groups()) {
+                    String recordType = group.keys().get(0);
+                    double cost = 0.0;
+                    
+                    if (group.metrics().containsKey("UnblendedCost")) {
+                        cost = Double.parseDouble(group.metrics().get("UnblendedCost").amount());
+                    }
+                    
+                    System.out.println("  RecordType: " + recordType + " -> $" + String.format("%.4f", cost));
+                    
+                    // Only count "Usage" costs (not Credits, Refunds, etc.)
+                    if ("Usage".equalsIgnoreCase(recordType) && cost > 0) {
+                        usageCost += cost;
+                    }
+                }
+            }
+            
+            System.out.println("Month-to-date USAGE cost: $" + String.format("%.2f", usageCost));
+            return usageCost;
         } catch (Exception e) {
             System.err.println("Error getting month-to-date cost: " + e.getMessage());
             e.printStackTrace();

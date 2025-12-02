@@ -53,8 +53,13 @@
                 </VBox>
                 
                 <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="totalCreditsHeaderLabel" text="Total Credits" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalCreditsLabel" text="\$100.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                    <Label fx:id="totalCreditsHeaderLabel" text="Total Credits Used" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
+                    <Label fx:id="totalCreditsLabel" text="\$0.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                </VBox>
+                
+                <VBox alignment="CENTER" spacing="5">
+                    <Label fx:id="remainingCreditsHeaderLabel" text="Remaining Credits" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
+                    <Label fx:id="remainingCreditsLabel" text="\$100.00" style="-fx-text-fill: #4CAF50; -fx-font-size: 24px; -fx-font-weight: bold;"/>
                 </VBox>
             </HBox>
         </VBox>

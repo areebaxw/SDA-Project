@@ -108,6 +108,32 @@ public class UserDAO {
     }
     
     /**
+     * Create new user and return generated user ID
+     */
+    public int createUserAndGetId(User user) {
+        String query = "INSERT INTO users (username, password, email, full_name, role) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getFullName());
+            stmt.setString(5, user.getRole());
+            
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                ResultSet generatedKeys = stmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating user: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    
+    /**
      * Check if username exists
      */
     public boolean usernameExists(String username) {

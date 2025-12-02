@@ -25,7 +25,7 @@ public class SplashController {
     private void initialize() {
         // Load and set logo image
         try {
-            Image logo = new Image(getClass().getResourceAsStream("/images/awsense_logo.png"));
+            Image logo = new Image(getClass().getResourceAsStream("/images/awsense_logo2.png"));
             logoImage.setImage(logo);
         } catch (Exception e) {
             System.err.println("Error loading logo image: " + e.getMessage());
