@@ -3,438 +3,239 @@ package controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import models.User;
 import models.AWSCredential;
-import dao.*;
-import services.AlertService;
-import services.RuleEvaluationService;
-import aws.AWSClientFactory;
-import aws.BillingService;
+import dao.AWSCredentialDAO;
+import database.DBConnection;
+
+import java.sql.*;
 
 /**
- * DashboardController - Main dashboard controller
- * Implements MVC pattern and GRASP Controller pattern
+ * DashboardController  â€“  US-03: Basic Dashboard (local DB data)
+ *
+ * Structured Spec
+ *   Preconditions : user is logged in
+ *   Main flow     : query local DB â†’ display resource counts + cost totals
+ *   Sprint 1 note : EC2/RDS/ECS rows will be 0 (sync not yet done).
+ *                   Billing shows $0.00 until Sprint 2 populates live data.
+ *
+ * US-01c â€“ Logout is handled by handleLogout().
  */
 public class DashboardController {
-    @FXML
-    private Label welcomeLabel;
-    
-    @FXML
-    private Label ec2HeaderLabel;
-    
-    @FXML
-    private Label totalEC2Label;
-    
-    @FXML
-    private Label rdsHeaderLabel;
-    
-    @FXML
-    private Label totalRDSLabel;
-    
-    @FXML
-    private Label ecsHeaderLabel;
-    
-    @FXML
-    private Label totalECSLabel;
-    
-    @FXML
-    private Label sageMakerHeaderLabel;
-    
-    @FXML
-    private Label totalSageMakerLabel;
-    
-    @FXML
-    private Label alertsHeaderLabel;
-    
-    @FXML
-    private Label totalAlertsLabel;
-    
-    @FXML
-    private Label costHeaderLabel;
-    
-    @FXML
-    private Label costTrendLabel;
-    
-    @FXML
-    private Label totalCreditsHeaderLabel;
-    
-    @FXML
-    private Label totalCreditsLabel;
-    
-    @FXML
-    private Label remainingCreditsHeaderLabel;
-    
-    @FXML
-    private Label remainingCreditsLabel;
-    
-    @FXML
-    private VBox contentArea;
-    
-    // Button references
-    @FXML
-    private Button ec2Button;
-    
-    @FXML
-    private Button rdsButton;
-    
-    @FXML
-    private Button ecsButton;
-    
-    @FXML
-    private Button sageMakerButton;
-    
-    @FXML
-    private Button rulesButton;
-    
-    @FXML
-    private Button alertsButton;
-    
-    @FXML
-    private Button billingButton;
-    
+
+    /* â”€â”€ FXML bindings â€“ top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Label welcomeLabel;
+    @FXML private Label roleBadge;
+
+    /* â”€â”€ Stat bar labels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Label userCountLabel;
+    @FXML private Label credStatusLabel;
+    @FXML private Label regionLabel;
+    @FXML private Label ec2Label;
+    @FXML private Label rdsLabel;
+    @FXML private Label ecsLabel;
+    @FXML private Label monthlyCostLabel;
+
+    /* â”€â”€ Content area â€“ account card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Label cardUsername;
+    @FXML private Label cardFullName;
+    @FXML private Label cardEmail;
+    @FXML private Label cardRole;
+
+    /* â”€â”€ Content area â€“ credential card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Label credCardStatus;
+    @FXML private Label credCardRegion;
+    @FXML private Label credCardValidated;
+
+    /* â”€â”€ Content area â€“ billing card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Label billMonthLabel;
+    @FXML private Label billTotalLabel;
+    @FXML private Label billRecordsLabel;
+
+    /* â”€â”€ Sidebar buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private Button btnOverview;
+    @FXML private Button btnCredentials;
+
+    /* â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @FXML private VBox contentArea;
+    @FXML private Label contentTitle;
+
     private User currentUser;
-    private EC2DAO ec2DAO;
-    private RDSDAO rdsDAO;
-    private ECSDAO ecsDAO;
-    private SageMakerDAO sageMakerDAO;
-    private AlertService alertService;
-    
-    private Button previousActiveButton;
-    private Label previousActiveHeaderLabel;
-    private Label previousActiveHeaderValue;
-    private static final String ACTIVE_BUTTON_STYLE = "-fx-background-color: #ED7D27; -fx-text-fill: #000000; -fx-font-weight: bold; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 10;";
-    private static final String INACTIVE_BUTTON_STYLE = "-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000; -fx-alignment: CENTER_LEFT; -fx-padding: 10;";
-    private static final String ACTIVE_HEADER_LABEL_STYLE = "-fx-text-fill: #ED7D27; -fx-font-size: 12px;";
-    private static final String INACTIVE_HEADER_LABEL_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 12px;";
-    private static final String ACTIVE_HEADER_VALUE_STYLE = "-fx-text-fill: #ED7D27; -fx-font-size: 24px; -fx-font-weight: bold;";
-    private static final String INACTIVE_HEADER_VALUE_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;";
-    
-    public DashboardController() {
-        this.ec2DAO = new EC2DAO();
-        this.rdsDAO = new RDSDAO();
-        this.ecsDAO = new ECSDAO();
-        this.sageMakerDAO = new SageMakerDAO();
-        this.alertService = AlertService.getInstance();
-    }
-    
-    @FXML
-    private void initialize() {
-        // Don't load data here - currentUser is not set yet
-    }
-    
+    private final AWSCredentialDAO awsCredentialDAO = new AWSCredentialDAO();
+
+    @FXML private void initialize() { /* data loaded after setCurrentUser() */ }
+
+    /** Called by LoginController or CredentialsController after scene creation. */
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        welcomeLabel.setText("Welcome, " + user.getFullName());
-        
-        // Load AWS credentials from database
-        loadAWSCredentials();
-        
-        loadDashboardData();
+        populateTopBar();
+        populateStatBar();
+        populateAccountCard();
+        populateCredentialCard();
+        populateBillingCard();
     }
-    
-    private void loadAWSCredentials() {
+
+    /* â”€â”€ Sidebar handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+    @FXML
+    private void handleOverview() {
+        setActiveButton(btnOverview);
+    }
+
+    /** US-02: Navigate to credentials setup from inside the dashboard. */
+    @FXML
+    private void handleCredentials() {
         try {
-            AWSCredentialDAO credentialDAO = new AWSCredentialDAO();
-            AWSCredential credentials = credentialDAO.getActiveCredentials(currentUser.getUserId());
-            
-            if (credentials != null) {
-                // Initialize AWS client factory with credentials
-                AWSClientFactory factory = AWSClientFactory.getInstance();
-                factory.initializeCredentials(
-                    credentials.getAccessKey(),
-                    credentials.getSecretKey(),
-                    credentials.getRegion()
-                );
-                
-                // Validate credentials
-                if (factory.validateCredentials()) {
-                    System.out.println("✓ AWS credentials loaded and validated successfully");
-                    System.out.println("  Region: " + credentials.getRegion());
-                } else {
-                    System.err.println("✗ AWS credentials validation failed");
-                    showAlert("Warning", "AWS credentials could not be validated. Some features may not work.");
-                }
-            } else {
-                System.err.println("✗ No AWS credentials found for user");
-                showAlert("Warning", "No AWS credentials configured. Please configure your AWS credentials.");
-            }
-        } catch (Exception e) {
-            System.err.println("✗ Error loading AWS credentials: " + e.getMessage());
-            e.printStackTrace();
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/views/credentials.fxml"));
+            Scene scene = new Scene(loader.load(), 860, 680);
+            CredentialsController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnCredentials.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool â€“ Credentials");
+            stage.show();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
-    
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-    
-    private void loadDashboardData() {
-        try {
-            // Check if currentUser is set
-            if (currentUser == null) {
-                System.err.println("Current user is not set yet");
-                return;
-            }
-            
-            // Load resource counts
-            int ec2Count = ec2DAO.getTotalEC2Count();
-            int rdsCount = rdsDAO.getTotalRDSCount();
-            int ecsCount = ecsDAO.getTotalECSCount();
-            int sageMakerCount = sageMakerDAO.getTotalEndpointCount();
-            int alertCount = alertService.getTotalAlertCount(true);
-            
-            // Update labels
-            totalEC2Label.setText(String.valueOf(ec2Count));
-            totalRDSLabel.setText(String.valueOf(rdsCount));
-            totalECSLabel.setText(String.valueOf(ecsCount));
-            totalSageMakerLabel.setText(String.valueOf(sageMakerCount));
-            totalAlertsLabel.setText(String.valueOf(alertCount));
-            
-            // Display credits used this month from AWS
-            double monthlyCreditsUsed = 0.0;
-            double totalCreditsUsed = 0.0;
-            
-            System.out.println("=== Loading Billing Data ===");
-            System.out.println("AWS Client Initialized: " + AWSClientFactory.getInstance().isInitialized());
-            
-            if (AWSClientFactory.getInstance().isInitialized()) {
-                try {
-                    BillingService billingService = new BillingService();
-                    
-                    // Get credits used this month
-                    System.out.println("Fetching month-to-date cost...");
-                    monthlyCreditsUsed = billingService.getMonthToDateCost();
-                    System.out.println("Month-to-date cost returned: $" + monthlyCreditsUsed);
-                    
-                    if (Double.isNaN(monthlyCreditsUsed) || monthlyCreditsUsed < 0) {
-                        monthlyCreditsUsed = 0.0;
-                    }
-                    costTrendLabel.setText(String.format("$%.2f", monthlyCreditsUsed));
-                    
-                    // Get total credits used all time (last 12 months)
-                    System.out.println("Fetching total credits used all time...");
-                    totalCreditsUsed = billingService.getTotalCreditsUsedAllTime();
-                    System.out.println("Total credits used returned: $" + totalCreditsUsed);
-                    
-                    if (Double.isNaN(totalCreditsUsed) || totalCreditsUsed < 0) {
-                        totalCreditsUsed = 0.0;
-                    }
-                    totalCreditsLabel.setText(String.format("$%.2f", totalCreditsUsed));
-                    
-                } catch (Exception e) {
-                    System.err.println("Error fetching credits from AWS: " + e.getMessage());
-                    e.printStackTrace();
-                    costTrendLabel.setText("$0.00");
-                    totalCreditsLabel.setText("$0.00");
-                    monthlyCreditsUsed = 0.0;
-                    totalCreditsUsed = 0.0;
-                }
-            } else {
-                System.out.println("AWS Client not initialized - showing $0.00");
-                costTrendLabel.setText("$0.00");
-                totalCreditsLabel.setText("$0.00");
-                monthlyCreditsUsed = 0.0;
-                totalCreditsUsed = 0.0;
-            }
-            
-            // Calculate remaining credits: $100 Free Tier - total credits used
-            double remainingCredits = 100.0 - totalCreditsUsed;
-            if (remainingCredits < 0) {
-                remainingCredits = 0.0;
-                // Change color to red if credits exhausted
-                remainingCreditsLabel.setStyle("-fx-text-fill: #FF5252; -fx-font-size: 24px; -fx-font-weight: bold;");
-            } else if (remainingCredits < 20) {
-                // Change color to orange if credits are low
-                remainingCreditsLabel.setStyle("-fx-text-fill: #FFA726; -fx-font-size: 24px; -fx-font-weight: bold;");
-            } else {
-                // Green for healthy credits
-                remainingCreditsLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 24px; -fx-font-weight: bold;");
-            }
-            remainingCreditsLabel.setText(String.format("$%.2f", remainingCredits));
-            
-        } catch (Exception e) {
-            System.err.println("Error loading dashboard data: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    private void setActiveButton(Button activeButton) {
-        // Reset previous button to inactive style
-        if (previousActiveButton != null) {
-            previousActiveButton.setStyle(INACTIVE_BUTTON_STYLE);
-        }
-        
-        // Set current button to active style
-        activeButton.setStyle(ACTIVE_BUTTON_STYLE);
-        
-        // Update previous button reference
-        previousActiveButton = activeButton;
-    }
-    
-    private void setActiveHeaderLabel(Label activeHeaderLabel, Label activeValueLabel) {
-        // Reset previous header label and value to inactive style
-        if (previousActiveHeaderLabel != null) {
-            previousActiveHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        }
-        if (previousActiveHeaderValue != null) {
-            previousActiveHeaderValue.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        }
-        
-        // Set current labels to active style
-        activeHeaderLabel.setStyle(ACTIVE_HEADER_LABEL_STYLE);
-        activeValueLabel.setStyle(ACTIVE_HEADER_VALUE_STYLE);
-        
-        // Update previous header references
-        previousActiveHeaderLabel = activeHeaderLabel;
-        previousActiveHeaderValue = activeValueLabel;
-    }
-    
-    private void resetAllHeaderLabels() {
-        ec2HeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        totalEC2Label.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        rdsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        totalRDSLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        ecsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        totalECSLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        sageMakerHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        totalSageMakerLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        alertsHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        totalAlertsLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        costHeaderLabel.setStyle(INACTIVE_HEADER_LABEL_STYLE);
-        costTrendLabel.setStyle(INACTIVE_HEADER_VALUE_STYLE);
-        
-        previousActiveHeaderLabel = null;
-        previousActiveHeaderValue = null;
-    }
-    
-    @FXML
-    private void handleEC2Monitor() {
-        setActiveButton(ec2Button);
-        setActiveHeaderLabel(ec2HeaderLabel, totalEC2Label);
-        loadView("/views/ec2.fxml", "EC2 Instances Monitor");
-    }
-    
-    @FXML
-    private void handleRDSMonitor() {
-        setActiveButton(rdsButton);
-        setActiveHeaderLabel(rdsHeaderLabel, totalRDSLabel);
-        loadView("/views/rds.fxml", "RDS Instances Monitor");
-    }
-    
-    @FXML
-    private void handleECSMonitor() {
-        setActiveButton(ecsButton);
-        setActiveHeaderLabel(ecsHeaderLabel, totalECSLabel);
-        loadView("/views/ecs.fxml", "ECS Services Monitor");
-    }
-    
-    @FXML
-    private void handleSageMakerMonitor() {
-        setActiveButton(sageMakerButton);
-        setActiveHeaderLabel(sageMakerHeaderLabel, totalSageMakerLabel);
-        loadView("/views/sagemaker.fxml", "SageMaker Endpoints Monitor");
-    }
-    
-    @FXML
-    private void handleBillingReports() {
-        setActiveButton(billingButton);
-        // For Billing, highlight Monthly Cost
-        setActiveHeaderLabel(costHeaderLabel, costTrendLabel);
-        loadView("/views/billing.fxml", "Billing Reports");
-    }
-    
-    @FXML
-    private void handleRulesManagement() {
-        setActiveButton(rulesButton);
-        // For Rules, reset all labels to white
-        resetAllHeaderLabels();
-        loadView("/views/rules.fxml", "Governance Rules");
-    }
-    
-    @FXML
-    private void handleAlertsView() {
-        setActiveButton(alertsButton);
-        setActiveHeaderLabel(alertsHeaderLabel, totalAlertsLabel);
-        loadView("/views/alerts.fxml", "Alerts Management");
-    }
-    
+
     @FXML
     private void handleRefresh() {
-        System.out.println("=== Dashboard Refresh Started ===");
-        
-        // Evaluate all active rules and generate alerts
-        System.out.println("Running rule evaluation...");
-        try {
-            RuleEvaluationService ruleEvaluationService = new RuleEvaluationService();
-            ruleEvaluationService.evaluateAllRules();
-        } catch (Exception e) {
-            System.err.println("Error during rule evaluation: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        // Reload dashboard data to reflect any new alerts
-        loadDashboardData();
-        
-        System.out.println("=== Dashboard Refresh Completed ===");
-        showInfo("Dashboard refreshed and rules evaluated successfully!");
+        if (currentUser != null) setCurrentUser(currentUser);
     }
-    
-    private void loadView(String fxmlPath, String title) {
+
+    /**
+     * US-01c â€“ Logout: clear session and return to login screen.
+     */
+    @FXML
+    private void handleLogout() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            VBox view = loader.load();
-            
-            // Pass current user to the loaded controller
-            Object controller = loader.getController();
-            if (controller instanceof EC2Controller) {
-                ((EC2Controller) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof RDSController) {
-                ((RDSController) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof ECSController) {
-                ((ECSController) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof SageMakerController) {
-                ((SageMakerController) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof BillingController) {
-                ((BillingController) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof RuleController) {
-                ((RuleController) controller).setCurrentUser(currentUser);
-            } else if (controller instanceof AlertController) {
-                ((AlertController) controller).setCurrentUser(currentUser);
-            }
-            
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(view);
-            
-        } catch (Exception e) {
-            System.err.println("Error loading view: " + e.getMessage());
-            e.printStackTrace();
-            showError("Error loading " + title);
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/views/login.fxml"));
+            Scene scene = new Scene(loader.load(), 800, 620);
+            Stage stage = (Stage) btnOverview.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool â€“ Login");
+            stage.setMinWidth(600);
+            stage.setMinHeight(500);
+            stage.show();
+            System.out.println("âœ“ User logged out: " + currentUser.getUsername());
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
-    
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+
+    /* â”€â”€ Data population â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+    private void populateTopBar() {
+        welcomeLabel.setText("Welcome, " + currentUser.getFullName());
+        roleBadge.setText(currentUser.getRole());
+        boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
+        roleBadge.getStyleClass().setAll(isAdmin ? "badge-success" : "badge-warning");
     }
-    
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+
+    private void populateStatBar() {
+        // User count from DB
+        int userCount = queryInt("SELECT COUNT(*) FROM users");
+        userCountLabel.setText(String.valueOf(userCount));
+
+        // Credential status
+        AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
+        if (cred != null) {
+            credStatusLabel.setText("Saved");
+            credStatusLabel.getStyleClass().setAll("stat-value-success");
+            regionLabel.setText(cred.getRegion());
+        } else {
+            credStatusLabel.setText("None");
+            credStatusLabel.getStyleClass().setAll("stat-value-warning");
+            regionLabel.setText("â€”");
+        }
+
+        // US-03a: resource counts from local tables
+        ec2Label.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM ec2_instances")));
+        rdsLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM rds_instances")));
+        ecsLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM ecs_services")));
+
+        // Monthly cost from billing table (will be $0 until Sprint 2 syncs live data)
+        double monthly = queryDouble(
+            "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
+            "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
+        monthlyCostLabel.setText(String.format("$%.2f", monthly));
+    }
+
+    private void populateAccountCard() {
+        cardUsername.setText(currentUser.getUsername());
+        cardFullName.setText(currentUser.getFullName());
+        cardEmail.setText(nvl(currentUser.getEmail()));
+        cardRole.setText(currentUser.getRole());
+    }
+
+    private void populateCredentialCard() {
+        AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
+        if (cred != null) {
+            credCardStatus.setText("Saved");
+            credCardStatus.getStyleClass().setAll("badge-success");
+            credCardRegion.setText(cred.getRegion());
+            credCardValidated.setText("Pending (Sprint 2)");
+            credCardValidated.getStyleClass().setAll("badge-warning");
+        } else {
+            credCardStatus.setText("Not configured");
+            credCardStatus.getStyleClass().setAll("badge-error");
+            credCardRegion.setText("â€”");
+            credCardValidated.setText("â€”");
+        }
+    }
+
+    private void populateBillingCard() {
+        double monthly = queryDouble(
+            "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
+            "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
+        double total   = queryDouble("SELECT IFNULL(SUM(cost_amount),0) FROM billing_records");
+        int    records = queryInt  ("SELECT COUNT(*) FROM billing_records");
+
+        billMonthLabel.setText(String.format("$%.2f", monthly));
+        billTotalLabel.setText(String.format("$%.2f", total));
+        billRecordsLabel.setText(String.valueOf(records));
+    }
+
+    /* â”€â”€ Sidebar active-state helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+    private void setActiveButton(Button active) {
+        for (Button b : new Button[]{btnOverview, btnCredentials}) {
+            if (b == null) continue;
+            b.getStyleClass().setAll(b == active ? "nav-button-active" : "nav-button");
+        }
+    }
+
+    /* â”€â”€ DB utility helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+    private int queryInt(String sql) {
+        try (Connection c = DBConnection.getInstance().getConnection();
+             Statement  s = c.createStatement();
+             ResultSet  r = s.executeQuery(sql)) {
+            return r.next() ? r.getInt(1) : 0;
+        } catch (Exception e) {
+            System.err.println("queryInt failed [" + sql + "]: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private double queryDouble(String sql) {
+        try (Connection c = DBConnection.getInstance().getConnection();
+             Statement  s = c.createStatement();
+             ResultSet  r = s.executeQuery(sql)) {
+            return r.next() ? r.getDouble(1) : 0.0;
+        } catch (Exception e) {
+            System.err.println("queryDouble failed [" + sql + "]: " + e.getMessage());
+            return 0.0;
+        }
+    }
+
+    private static String nvl(String s) {
+        return (s == null || s.isBlank()) ? "â€”" : s;
     }
 }

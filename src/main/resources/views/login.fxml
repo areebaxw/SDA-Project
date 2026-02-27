@@ -3,76 +3,90 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="controllers.LoginController" 
-      alignment="CENTER" spacing="20" style="-fx-background-color: black;">
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.LoginController"
+      styleClass="page-root"
+      alignment="CENTER" spacing="20">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
     
     <padding>
-        <Insets top="40" right="40" bottom="40" left="40"/>
+        <Insets top="50" right="40" bottom="50" left="40"/>
     </padding>
-    
-    <!-- Title -->
-    <Label text="AWS Cloud Governance Tool" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #ED7D27 ;"/>
-    <Label text="Resource Monitoring &amp; Management" style="-fx-font-size: 14px; -fx-text-fill: white;"/>
-    
+
+    <!-- App branding -->
+    <Label text="AWS Cloud Governance Tool" styleClass="app-title"/>
+    <Label text="Resource Monitoring &amp; Management" styleClass="app-subtitle"/>
+
     <Region VBox.vgrow="ALWAYS" minHeight="20"/>
-    
-    <!-- Login Form -->
-    <VBox spacing="15" alignment="CENTER" maxWidth="350">
-        
-        <Label text="Login" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
-        
-        <!-- Username Field -->
-        <VBox spacing="5">
-            <Label text="Username:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
-            <TextField fx:id="usernameField" promptText="Enter username" 
-                      style="-fx-pref-width: 300px; -fx-pref-height: 35px; -fx-background-color: #101820; -fx-text-fill: white"
-                      onKeyPressed="#handleKeyPressed"/>
+
+    <!-- Login card -->
+    <VBox styleClass="auth-panel" alignment="CENTER" maxWidth="400">
+
+        <Label text="Login to Your Account" styleClass="form-title"/>
+
+        <Region minHeight="6"/>
+
+        <!-- Username -->
+        <VBox styleClass="field-vbox">
+            <Label text="Username" styleClass="field-label"/>
+            <TextField fx:id="usernameField"
+                       promptText="Enter your username"
+                       styleClass="text-field"
+                       maxWidth="Infinity"
+                       onKeyPressed="#handleKeyPressed"/>
         </VBox>
-        
-        <!-- Password Field -->
-        <VBox spacing="5">
-            <Label text="Password:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27"/>
+
+        <!-- Password with toggle -->
+        <VBox styleClass="field-vbox">
+            <Label text="Password" styleClass="field-label"/>
             <StackPane>
-                <PasswordField fx:id="passwordField" promptText="Enter password" 
-                              style="-fx-pref-width: 300px; -fx-pref-height: 35px; -fx-background-color: #101820; -fx-text-fill: white; -fx-padding: 0 40 0 10;"
-                              onKeyPressed="#handleKeyPressed"/>
-                <TextField fx:id="passwordTextField" promptText="Enter password" 
-                          style="-fx-pref-width: 300px; -fx-pref-height: 35px; -fx-background-color: #101820; -fx-text-fill: white; -fx-padding: 0 40 0 10;"
-                          onKeyPressed="#handleKeyPressed" visible="false" managed="false"/>
-                <Button fx:id="togglePasswordButton" text="👁" 
-                       onAction="#togglePasswordVisibility"
-                       style="-fx-background-color: transparent; -fx-text-fill: #ED7D27; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 0;"
-                       prefWidth="30" prefHeight="30" StackPane.alignment="CENTER_RIGHT">
-                    <StackPane.margin>
-                        <Insets right="5"/>
-                    </StackPane.margin>
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter your password"
+                               styleClass="password-field"
+                               maxWidth="Infinity"
+                               onKeyPressed="#handleKeyPressed"/>
+                <TextField fx:id="passwordTextField"
+                           promptText="Enter your password"
+                           styleClass="password-field"
+                           maxWidth="Infinity"
+                           visible="false" managed="false"
+                           onKeyPressed="#handleKeyPressed"/>
+                <Button fx:id="togglePasswordButton" text="👁"
+                        onAction="#togglePasswordVisibility"
+                        styleClass="icon-button"
+                        prefWidth="36" prefHeight="36"
+                        StackPane.alignment="CENTER_RIGHT">
+                    <StackPane.margin><Insets right="4"/></StackPane.margin>
                 </Button>
             </StackPane>
         </VBox>
-        
-        <!-- Error Label -->
-        <Label fx:id="errorLabel" text="Error message" 
-               style="-fx-text-fill: red; -fx-font-weight: bold;" visible="false"/>
-        
-        <!-- Login Button -->
-        <Button fx:id="loginButton" text="Login" onAction="#handleLogin"
-                style="-fx-background-color: #ED7D27; -fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 300px; -fx-pref-height: 40px; -fx-cursor: hand;"/>
-        
-        <!-- Sign Up Link -->
-        <HBox spacing="5" alignment="CENTER">
-            <Label text="Don't have an account?" style="-fx-text-fill: white;"/>
-            <Hyperlink fx:id="signupLink" text="Sign up here" onAction="#handleSignup" 
-                      style="-fx-text-fill: #ED7D27; -fx-underline: true;"/>
+
+        <!-- Error / success feedback -->
+        <Label fx:id="errorLabel" styleClass="error-label"
+               wrapText="true" maxWidth="Infinity"
+               visible="false" managed="false"/>
+
+        <Region minHeight="4"/>
+
+        <!-- Login action -->
+        <Button fx:id="loginButton" text="Login"
+                styleClass="primary-button" maxWidth="Infinity"
+                onAction="#handleLogin"/>
+
+        <!-- Register link -->
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Don't have an account?" styleClass="muted-label"/>
+            <Button text="Sign Up" styleClass="link-button" onAction="#handleSignup"/>
         </HBox>
-        
-        <Separator prefWidth="300"/>
-        
+
     </VBox>
-    
+
     <Region VBox.vgrow="ALWAYS"/>
-    
-    
+
+    <Label text="Sprint 1 – User &amp; Cloud Account Onboarding" styleClass="hint-label"/>
+
 </VBox>

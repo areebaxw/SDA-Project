@@ -4,105 +4,198 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.DashboardController">
-    
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.DashboardController">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
+
+    <!-- ── Top Bar ────────────────────────────────── -->
     <top>
-        <VBox style="-fx-background-color: #000000;">
-            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 15;">
-                <Label text="AWS Governance Dashboard" style="-fx-text-fill: #ED7D27; -fx-font-size: 20px; -fx-font-weight: bold;"/>
-                <Region HBox.hgrow="ALWAYS">
-                    <HBox.margin>
-                        <Insets/>
-                    </HBox.margin>
-                </Region>
-                <Label fx:id="welcomeLabel" text="Welcome, User" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
-            </HBox>
-            
-            <HBox alignment="CENTER" spacing="30" style="-fx-padding: 15; -fx-background-color: #141414ff;">
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="ec2HeaderLabel" text="EC2 Instances" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalEC2Label" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-                </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="rdsHeaderLabel" text="RDS Instances" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalRDSLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-                </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="ecsHeaderLabel" text="ECS Services" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalECSLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-                </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="sageMakerHeaderLabel" text="SageMaker" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalSageMakerLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-                </VBox>
-                
+        <VBox>
+            <!-- Brand row -->
+            <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
+                <Label text="☁ AWS Cloud Governance" styleClass="dashboard-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="welcomeLabel" text="Welcome, User" styleClass="welcome-label"/>
                 <Separator orientation="VERTICAL"/>
-    
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="alertsHeaderLabel" text="Active Alerts" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalAlertsLabel" text="0" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="roleBadge" text="admin" styleClass="badge-success"/>
+            </HBox>
+
+            <!-- Stat bar -->
+            <HBox styleClass="stat-bar" alignment="CENTER" spacing="12">
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="userCountLabel" text="—" styleClass="stat-value-accent"/>
+                    <Label text="Registered Users" styleClass="stat-label"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="costHeaderLabel" text="Credits Used This Month" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="costTrendLabel" text="\$0.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="credStatusLabel" text="—" styleClass="stat-value"/>
+                    <Label text="AWS Credentials" styleClass="stat-label"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="totalCreditsHeaderLabel" text="Total Credits Used" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="totalCreditsLabel" text="\$0.00" style="-fx-text-fill: #FFFFFF; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="regionLabel" text="—" styleClass="stat-value"/>
+                    <Label text="Active Region" styleClass="stat-label"/>
                 </VBox>
-                
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="remainingCreditsHeaderLabel" text="Remaining Credits" style="-fx-text-fill: #FFFFFF; -fx-font-size: 12px;"/>
-                    <Label fx:id="remainingCreditsLabel" text="\$100.00" style="-fx-text-fill: #4CAF50; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                <Separator orientation="VERTICAL"/>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="ec2Label" text="0" styleClass="stat-value"/>
+                    <Label text="EC2 Instances" styleClass="stat-label"/>
                 </VBox>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="rdsLabel" text="0" styleClass="stat-value"/>
+                    <Label text="RDS Instances" styleClass="stat-label"/>
+                </VBox>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="ecsLabel" text="0" styleClass="stat-value"/>
+                    <Label text="ECS Services" styleClass="stat-label"/>
+                </VBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <VBox styleClass="stat-card" alignment="CENTER">
+                    <Label fx:id="monthlyCostLabel" text="$0.00" styleClass="stat-value-success"/>
+                    <Label text="Cost This Month" styleClass="stat-label"/>
+                </VBox>
+
             </HBox>
         </VBox>
     </top>
-    
+
+    <!-- ── Sidebar ───────────────────────────────── -->
     <left>
-        <VBox spacing="5" style="-fx-background-color: #141414ff; -fx-padding: 10; -fx-pref-width: 200;">
-            <Label text="MONITORING" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="ec2Button" text="EC2 Instances" onAction="#handleEC2Monitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="rdsButton" text="RDS Databases" onAction="#handleRDSMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="ecsButton" text="ECS Services" onAction="#handleECSMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="sageMakerButton" text="SageMaker" onAction="#handleSageMakerMonitor" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
+        <VBox styleClass="sidebar" spacing="2">
+            <Label text="OVERVIEW" styleClass="sidebar-section-label"/>
+
+            <Button fx:id="btnOverview" text="🏠  Dashboard Overview"
+                    styleClass="nav-button-active" maxWidth="Infinity"
+                    onAction="#handleOverview"/>
+
+            <Label text="ACCOUNT" styleClass="sidebar-section-label"/>
+
+            <Button fx:id="btnCredentials" text="🔑  AWS Credentials"
+                    styleClass="nav-button" maxWidth="Infinity"
+                    onAction="#handleCredentials"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
             <Separator/>
-            
-            <Label text="GOVERNANCE" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="rulesButton" text="Rules" onAction="#handleRulesManagement" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Button fx:id="alertsButton" text="Alerts" onAction="#handleAlertsView" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Separator/>
-            
-            <Label text="REPORTS" style="-fx-font-size: 14px;-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #ED7D27; -fx-padding: 10;"/>
-            
-            <Button fx:id="billingButton" text="Billing" onAction="#handleBillingReports" maxWidth="Infinity" style="-fx-font-weight: bold;-fx-font-size: 13px; -fx-text-fill: #FFFFFF; -fx-background-color: #000000 ; -fx-alignment: CENTER_LEFT; -fx-padding: 10;"/>
-            
-            <Separator/>
-            
-            <Button text="↻ Refresh Dashboard" onAction="#handleRefresh" maxWidth="Infinity" style="-fx-background-color: #ED7D27; -fx-text-fill: #000000; -fx-padding: 10,10,10,10; -fx-font-weight: bold;-fx-font-size: 14px;"/>
+
+            <Button text="⟳  Refresh" styleClass="secondary-button" maxWidth="Infinity"
+                    onAction="#handleRefresh"/>
+
+            <Button text="⎋  Logout" styleClass="nav-logout-button" maxWidth="Infinity"
+                    onAction="#handleLogout"/>
         </VBox>
     </left>
-    
+
+    <!-- ── Main Content ─────────────────────────── -->
     <center>
-        <VBox fx:id="contentArea" style="-fx-background-color: #000000; -fx-padding: 20;" alignment="CENTER" spacing="10">
-            <VBox alignment="CENTER" spacing="10">
-                <Label text="Welcome to AWS Cloud Governance Tool" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill:#ED7D27;"/>
-                <Label text="Select an option from the sidebar to get started" style="-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"/>
+        <ScrollPane styleClass="scroll-pane" fitToWidth="true" fitToHeight="false">
+            <VBox fx:id="contentArea" styleClass="content-area" spacing="24">
+
+                <!-- Welcome section -->
+                <VBox spacing="6">
+                    <Label fx:id="contentTitle" text="Welcome to AWS Cloud Governance"
+                           styleClass="content-title"/>
+                    <Label text="Sprint 1 – User &amp; Cloud Account Onboarding + Basic Cost Dashboard"
+                           styleClass="content-subtitle"/>
+                </VBox>
+
+                <!-- Info cards row 1 -->
+                <HBox spacing="16">
+
+                    <!-- User info card -->
+                    <VBox styleClass="info-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="👤  Your Account" styleClass="info-card-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Username:" styleClass="muted-label"/>
+                            <Label fx:id="cardUsername" text="—" styleClass="white-label"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Full Name:" styleClass="muted-label"/>
+                            <Label fx:id="cardFullName" text="—" styleClass="white-label"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Email:" styleClass="muted-label"/>
+                            <Label fx:id="cardEmail" text="—" styleClass="white-label"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Role:" styleClass="muted-label"/>
+                            <Label fx:id="cardRole" text="—" styleClass="white-label"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- AWS credential card -->
+                    <VBox styleClass="info-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="🔑  AWS Credentials" styleClass="info-card-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Status:" styleClass="muted-label"/>
+                            <Label fx:id="credCardStatus" text="Not configured" styleClass="badge-warning"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Region:" styleClass="muted-label"/>
+                            <Label fx:id="credCardRegion" text="—" styleClass="white-label"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Validated:" styleClass="muted-label"/>
+                            <Label fx:id="credCardValidated" text="Pending (Sprint 2)" styleClass="badge-warning"/>
+                        </HBox>
+                        <Region minHeight="4"/>
+                        <Button text="Configure Now →" styleClass="secondary-button"
+                                onAction="#handleCredentials"/>
+                    </VBox>
+
+                </HBox>
+
+                <!-- Cost summary card -->
+                <VBox styleClass="info-card" spacing="10">
+                    <Label text="💰  Cost Summary (Sprint 1 – Local DB)" styleClass="info-card-title"/>
+                    <HBox spacing="50" alignment="CENTER_LEFT">
+                        <VBox spacing="4" alignment="CENTER">
+                            <Label fx:id="billMonthLabel" text="$0.00" styleClass="stat-value-success"/>
+                            <Label text="This Month" styleClass="stat-label"/>
+                        </VBox>
+                        <VBox spacing="4" alignment="CENTER">
+                            <Label fx:id="billTotalLabel" text="$0.00" styleClass="stat-value"/>
+                            <Label text="All-Time Total" styleClass="stat-label"/>
+                        </VBox>
+                        <VBox spacing="4" alignment="CENTER">
+                            <Label fx:id="billRecordsLabel" text="0" styleClass="stat-value"/>
+                            <Label text="Billing Records" styleClass="stat-label"/>
+                        </VBox>
+                    </HBox>
+                    <HBox styleClass="status-strip-warning" spacing="8" alignment="CENTER_LEFT">
+                        <Label text="ℹ" styleClass="muted-label"/>
+                        <Label text="Live AWS billing sync will be enabled in Sprint 2 once credentials are validated."
+                               styleClass="hint-label" wrapText="true"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Sprint 1 roadmap note -->
+                <VBox styleClass="info-card" spacing="8">
+                    <Label text="📋  Sprint 1 Scope" styleClass="info-card-title"/>
+                    <Label text="✅  US-01a  Register user" styleClass="success-label"/>
+                    <Label text="✅  US-01b  Login user" styleClass="success-label"/>
+                    <Label text="✅  US-01c  Logout" styleClass="success-label"/>
+                    <Label text="✅  US-02a  AWS Credential form UI" styleClass="success-label"/>
+                    <Label text="✅  US-02b  Encrypt + store credentials in DB" styleClass="success-label"/>
+                    <Label text="✅  US-02c  Mock 'Test Connection' (real SDK → Sprint 2)" styleClass="success-label"/>
+                    <Label text="✅  US-03a  Dashboard reads local DB totals" styleClass="success-label"/>
+                    <Separator/>
+                    <Label text="⏳  Monitoring (EC2/RDS/ECS/SageMaker), idle detection, rules → Sprint 2"
+                           styleClass="hint-label" wrapText="true"/>
+                </VBox>
+
             </VBox>
-        </VBox>
+        </ScrollPane>
     </center>
+
 </BorderPane>

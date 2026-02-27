@@ -4,59 +4,51 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import database.DBConnection;
-import services.AlertService;
-import services.ConsoleAlertObserver;
 
+/**
+ * App â€“ JavaFX entry point for Sprint 1
+ *
+ * Sprint 1 module: User & Cloud Account Onboarding + Basic Cost Dashboard
+ * Flow:  Login â†’ (Credentials Setup) â†’ Dashboard
+ */
 public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Test database connection
+            // Verify DB connectivity at startup
             if (DBConnection.testConnection()) {
-                System.out.println("Database connection successful!");
+                System.out.println("âœ“ Database connection established.");
             } else {
-                System.err.println("Failed to connect to database. Check DBConnection configuration.");
+                System.err.println("âœ— Database connection failed â€“ check DBConnection.java config.");
             }
-            
-            // Initialize AlertService with observer pattern
-            AlertService alertService = AlertService.getInstance();
-            alertService.registerObserver(new ConsoleAlertObserver());
-            System.out.println("Alert service initialized with console observer");
-            
-            // Load SPLASH SCREEN FXML view instead of login
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/splash.fxml"));
-            Parent root = loader.load();
-            
-            // Setup scene and stage
-            Scene scene = new Scene(root, 900, 700);
-            primaryStage.setTitle("AWS Cloud Governance & Resource Monitoring Tool");
+
+            // Sprint 1 starts directly at the Login screen (no splash)
+            Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
+            Scene scene = new Scene(root, 800, 620);
+
+            primaryStage.setTitle("AWS Cloud Governance Tool â€“ Sprint 1");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
-            primaryStage.setMinWidth(800);
-            primaryStage.setMinHeight(600);
+            primaryStage.setMinWidth(600);
+            primaryStage.setMinHeight(500);
             primaryStage.centerOnScreen();
             primaryStage.show();
-            
-            System.out.println("Application started successfully!");
-            System.out.println("  Splash screen will display for 5 seconds...");
-            System.out.println("  Login with: admin / admin123");
-            
+
+            System.out.println("Application started. Open http://localhost â€“ visit login screen.");
         } catch (Exception e) {
             System.err.println("Error starting application:");
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public void stop() {
-        // Cleanup on application close
         try {
             DBConnection.closeConnection();
-            System.out.println("Database connection closed gracefully");
+            System.out.println("Database connection closed.");
         } catch (Exception e) {
-            System.err.println("Error during cleanup:");
-            e.printStackTrace();
+            System.err.println("Cleanup error: " + e.getMessage());
         }
     }
 
@@ -64,3 +56,4 @@ public class App extends Application {
         launch(args);
     }
 }
+
