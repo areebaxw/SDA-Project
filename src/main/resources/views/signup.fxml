@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.SignupController"
+      styleClass="page-root"
+      alignment="CENTER" spacing="20">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
+    
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <!-- App branding -->
+    <Label text="AWS Cloud Governance Tool" styleClass="app-title"/>
+    <Label text="Create Your Account" styleClass="app-subtitle"/>
+
+    <!-- Signup card -->
+    <StackPane VBox.vgrow="NEVER" alignment="CENTER">
+        <VBox styleClass="auth-panel" alignment="CENTER" maxWidth="420" minWidth="360">
+
+            <Label text="Register" styleClass="form-title"/>
+
+            <Region minHeight="6"/>
+
+            <!-- Full Name -->
+            <VBox styleClass="field-vbox">
+                <Label text="Full Name" styleClass="field-label"/>
+                <TextField fx:id="fullNameField" promptText="Enter your full name"
+                           styleClass="text-field" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Username -->
+            <VBox styleClass="field-vbox">
+                <Label text="Username" styleClass="field-label"/>
+                <TextField fx:id="usernameField" promptText="Choose a username (min 3 chars)"
+                           styleClass="text-field" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Email -->
+            <VBox styleClass="field-vbox">
+                <Label text="Email Address" styleClass="field-label"/>
+                <TextField fx:id="emailField" promptText="e.g. admin@company.com"
+                           styleClass="text-field" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Password -->
+            <VBox styleClass="field-vbox">
+                <Label text="Password" styleClass="field-label"/>
+                <PasswordField fx:id="passwordField" promptText="Min 6 characters"
+                               styleClass="password-field" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Confirm Password -->
+            <VBox styleClass="field-vbox">
+                <Label text="Confirm Password" styleClass="field-label"/>
+                <PasswordField fx:id="confirmPasswordField" promptText="Re-enter password"
+                               styleClass="password-field" maxWidth="Infinity"/>
+            </VBox>
+
+            <Label text="AWS credentials can be configured after login." styleClass="hint-label"/>
+
+            <!-- Error / success feedback -->
+            <Label fx:id="errorLabel" styleClass="error-label"
+                   wrapText="true" maxWidth="Infinity"
+                   visible="false" managed="false"/>
+
+            <Region minHeight="4"/>
+
+            <!-- Register action -->
+            <Button fx:id="signupButton" text="Create Account"
+                    styleClass="primary-button" maxWidth="Infinity"
+                    onAction="#handleSignup"/>
+
+            <!-- Back to login -->
+            <HBox spacing="6" alignment="CENTER">
+                <Label text="Already have an account?" styleClass="muted-label"/>
+                <Button text="Login here" styleClass="link-button" onAction="#handleBackToLogin"/>
+            </HBox>
+
+        </VBox>
+    </StackPane>
+
+</VBox>

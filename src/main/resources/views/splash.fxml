@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.SplashController"
+      alignment="CENTER" spacing="20" style="-fx-background-color: #000000;"
+      VBox.vgrow="ALWAYS">
+    
+    <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+    
+    <!-- Logo/Image Container -->
+    <VBox alignment="CENTER" spacing="20">
+        <ImageView fx:id="logoImage" fitWidth="400" fitHeight="400" preserveRatio="true"/>
+    </VBox>
+    
+    <!-- Subtitle -->
+    <Label text="AWS Cloud Governance Tool" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
+    <Label text="Resource Monitoring &amp; Management" style="-fx-font-size: 14px; -fx-text-fill: white;"/>
+    
+    <!-- Loading Indicator -->
+    <VBox alignment="CENTER" spacing="10">
+        <ProgressBar fx:id="loadingProgress" prefWidth="300" style="-fx-accent: #ED7D27;"/>
+        <Label text="Loading..." style="-fx-font-size: 12px; -fx-text-fill: #ED7D27;"/>
+    </VBox>
+    
+</VBox>

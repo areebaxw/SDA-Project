@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.LoginController"
+    id="login-page"
+    styleClass="page-root"
+      alignment="CENTER" spacing="20">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
+    
+    <padding>
+        <Insets top="50" right="40" bottom="50" left="40"/>
+    </padding>
+
+    <!-- App branding -->
+    <Label text="AWS Cloud Governance Tool" styleClass="app-title"/>
+    <Label text="Resource Monitoring &amp; Management" styleClass="app-subtitle"/>
+
+    <Region VBox.vgrow="ALWAYS" minHeight="20"/>
+
+    <!-- Login card -->
+    <VBox styleClass="auth-panel" alignment="CENTER" maxWidth="400">
+
+        <Label text="Login to Your Account" styleClass="form-title"/>
+
+        <Region minHeight="6"/>
+
+        <!-- Username -->
+        <VBox styleClass="field-vbox">
+            <Label text="Username" styleClass="field-label"/>
+            <TextField fx:id="usernameField"
+                       promptText="Enter your username"
+                       styleClass="text-field"
+                       maxWidth="Infinity"
+                       onKeyPressed="#handleKeyPressed"/>
+        </VBox>
+
+        <!-- Password with toggle -->
+        <VBox styleClass="field-vbox">
+            <Label text="Password" styleClass="field-label"/>
+            <StackPane>
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter your password"
+                               styleClass="password-field"
+                               maxWidth="Infinity"
+                               onKeyPressed="#handleKeyPressed"/>
+                <TextField fx:id="passwordTextField"
+                           promptText="Enter your password"
+                           styleClass="password-field"
+                           maxWidth="Infinity"
+                           visible="false" managed="false"
+                           onKeyPressed="#handleKeyPressed"/>
+                <Button fx:id="togglePasswordButton" text="👁"
+                        onAction="#togglePasswordVisibility"
+                        styleClass="icon-button"
+                        prefWidth="36" prefHeight="36"
+                        StackPane.alignment="CENTER_RIGHT">
+                    <StackPane.margin><Insets right="4"/></StackPane.margin>
+                </Button>
+            </StackPane>
+        </VBox>
+
+        <!-- Error / success feedback -->
+        <Label fx:id="errorLabel" styleClass="error-label"
+               wrapText="true" maxWidth="Infinity"
+               visible="false" managed="false"/>
+
+        <Region minHeight="4"/>
+
+        <!-- Login action -->
+        <Button fx:id="loginButton" text="Login"
+                styleClass="primary-button" maxWidth="Infinity"
+                onAction="#handleLogin"/>
+
+        <!-- Register link -->
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Don't have an account?" styleClass="muted-label"/>
+            <Button text="Sign Up" styleClass="link-button" onAction="#handleSignup"/>
+        </HBox>
+
+    </VBox>
+
+    <Region VBox.vgrow="ALWAYS"/>
+
+</VBox>
