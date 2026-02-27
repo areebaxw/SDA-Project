@@ -71,14 +71,25 @@ public class LoginController {
             return;
         }
 
-        User user = userDAO.authenticateUser(username, password);
+        User user;
+        try {
+            user = userDAO.authenticateUser(username, password);
+        } catch (Exception ex) {
+            showError("Database unavailable – please start MySQL/XAMPP and restart.");
+            return;
+        }
         if (user == null) {
             showError("Invalid username or password. Please try again.");
             return;
         }
 
         // Decide next screen: Credentials Setup if none saved, else Dashboard
-        boolean hasCredentials = awsCredentialDAO.getActiveCredentials(user.getUserId()) != null;
+        boolean hasCredentials;
+        try {
+            hasCredentials = awsCredentialDAO.getActiveCredentials(user.getUserId()) != null;
+        } catch (Exception ex) {
+            hasCredentials = false;
+        }
         if (hasCredentials) {
             openDashboard(user);
         } else {

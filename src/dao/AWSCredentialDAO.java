@@ -18,6 +18,7 @@ public class AWSCredentialDAO {
      * Get active AWS credentials for a user
      */
     public AWSCredential getActiveCredentials(int userId) {
+        if (connection == null) return null;
         String query = "SELECT * FROM aws_credentials WHERE user_id = ? AND is_active = TRUE LIMIT 1";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {

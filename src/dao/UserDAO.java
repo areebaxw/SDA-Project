@@ -22,6 +22,7 @@ public class UserDAO {
      * @return User object if authenticated, null otherwise
      */
     public User authenticateUser(String username, String password) {
+        if (connection == null) return null;
         String query = "SELECT * FROM users WHERE username = ? AND password = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, username);

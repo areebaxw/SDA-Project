@@ -21,12 +21,8 @@ public class DBConnection {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
             System.out.println("Database connection established successfully");
-        } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC Driver not found");
-            e.printStackTrace();
-        } catch (SQLException e) {
-            System.err.println("Failed to connect to database");
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Failed to connect to database: " + e.getMessage());
         }
     }
 
@@ -49,9 +45,8 @@ public class DBConnection {
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
             }
-        } catch (SQLException e) {
-            System.err.println("Error getting connection");
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Error getting connection: " + e.getMessage());
         }
         return connection;
     }
