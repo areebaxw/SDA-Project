@@ -1,11 +1,13 @@
 package controllers;
 
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.util.Duration;
 import models.User;
 import models.AWSCredential;
 import dao.AWSCredentialDAO;
@@ -14,59 +16,89 @@ import database.DBConnection;
 import java.sql.*;
 
 /**
- * DashboardController  â€“  US-03: Basic Dashboard (local DB data)
+ * DashboardController  Ã¢â‚¬â€œ  US-03: Basic Dashboard (local DB data)
  *
  * Structured Spec
  *   Preconditions : user is logged in
- *   Main flow     : query local DB â†’ display resource counts + cost totals
+ *   Main flow     : query local DB Ã¢â€ â€™ display resource counts + cost totals
  *   Sprint 1 note : EC2/RDS/ECS rows will be 0 (sync not yet done).
  *                   Billing shows $0.00 until Sprint 2 populates live data.
  *
- * US-01c â€“ Logout is handled by handleLogout().
+ * US-01c Ã¢â‚¬â€œ Logout is handled by handleLogout().
  */
 public class DashboardController {
 
-    /* â”€â”€ FXML bindings â€“ top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-    @FXML private Label welcomeLabel;
-    @FXML private Label roleBadge;
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ FXML bindings Ã¢â‚¬â€œ top bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+    @FXML private Button btnMenuToggle;
+    @FXML private VBox   drawerPane;
+    @FXML private Pane   drawerOverlay;
+    @FXML private Label  welcomeLabel;
+    @FXML private Label  roleBadge;
+    @FXML private Label  drawerUsername;
+    @FXML private Label  drawerRole;
 
-    /* â”€â”€ Stat bar labels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    private boolean drawerOpen = false;
+    private static final double DRAWER_WIDTH = 260;
+
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Stat bar labels Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label userCountLabel;
     @FXML private Label credStatusLabel;
-    @FXML private Label regionLabel;
     @FXML private Label ec2Label;
     @FXML private Label rdsLabel;
     @FXML private Label ecsLabel;
     @FXML private Label monthlyCostLabel;
 
-    /* â”€â”€ Content area â€“ account card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ account card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label cardUsername;
     @FXML private Label cardFullName;
     @FXML private Label cardEmail;
     @FXML private Label cardRole;
 
-    /* â”€â”€ Content area â€“ credential card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ credential card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label credCardStatus;
     @FXML private Label credCardRegion;
     @FXML private Label credCardValidated;
 
-    /* â”€â”€ Content area â€“ billing card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ billing card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label billMonthLabel;
     @FXML private Label billTotalLabel;
     @FXML private Label billRecordsLabel;
 
-    /* â”€â”€ Sidebar buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar buttons Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Button btnOverview;
     @FXML private Button btnCredentials;
 
-    /* â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Layout Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private VBox contentArea;
     @FXML private Label contentTitle;
 
     private User currentUser;
     private final AWSCredentialDAO awsCredentialDAO = new AWSCredentialDAO();
 
-    @FXML private void initialize() { /* data loaded after setCurrentUser() */ }
+    @FXML
+    private void initialize() { /* data loaded after setCurrentUser() */ }
+
+    /** Toggle the overlay drawer open/closed with a slide animation. */
+    @FXML
+    private void handleDrawerToggle() {
+        TranslateTransition tt = new TranslateTransition(Duration.millis(280), drawerPane);
+        if (!drawerOpen) {
+            // Show overlay
+            drawerOverlay.setVisible(true);
+            drawerOverlay.setManaged(true);
+            tt.setToX(0);
+            tt.play();
+            drawerOpen = true;
+        } else {
+            tt.setToX(-DRAWER_WIDTH);
+            tt.setOnFinished(e -> {
+                drawerOverlay.setVisible(false);
+                drawerOverlay.setManaged(false);
+            });
+            tt.play();
+            drawerOpen = false;
+        }
+    }
 
     /** Called by LoginController or CredentialsController after scene creation. */
     public void setCurrentUser(User user) {
@@ -78,7 +110,7 @@ public class DashboardController {
         populateBillingCard();
     }
 
-    /* â”€â”€ Sidebar handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
     @FXML
     private void handleOverview() {
@@ -94,9 +126,9 @@ public class DashboardController {
             Scene scene = new Scene(loader.load(), 860, 680);
             CredentialsController ctrl = loader.getController();
             ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnCredentials.getScene().getWindow();
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
             stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool â€“ Credentials");
+            stage.setTitle("AWS Governance Tool Ã¢â‚¬â€œ Credentials");
             stage.show();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -109,7 +141,7 @@ public class DashboardController {
     }
 
     /**
-     * US-01c â€“ Logout: clear session and return to login screen.
+     * US-01c Ã¢â‚¬â€œ Logout: clear session and return to login screen.
      */
     @FXML
     private void handleLogout() {
@@ -117,25 +149,27 @@ public class DashboardController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/views/login.fxml"));
             Scene scene = new Scene(loader.load(), 800, 620);
-            Stage stage = (Stage) btnOverview.getScene().getWindow();
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
             stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool â€“ Login");
+            stage.setTitle("AWS Governance Tool Ã¢â‚¬â€œ Login");
             stage.setMinWidth(600);
             stage.setMinHeight(500);
             stage.show();
-            System.out.println("âœ“ User logged out: " + currentUser.getUsername());
+            System.out.println("Ã¢Å“â€œ User logged out: " + currentUser.getUsername());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    /* â”€â”€ Data population â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Data population Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
     private void populateTopBar() {
         welcomeLabel.setText("Welcome, " + currentUser.getFullName());
         roleBadge.setText(currentUser.getRole());
         boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
         roleBadge.getStyleClass().setAll(isAdmin ? "badge-success" : "badge-warning");
+        if (drawerUsername != null) drawerUsername.setText(currentUser.getUsername());
+        if (drawerRole != null) drawerRole.setText(currentUser.getRole().toUpperCase());
     }
 
     private void populateStatBar() {
@@ -148,11 +182,9 @@ public class DashboardController {
         if (cred != null) {
             credStatusLabel.setText("Saved");
             credStatusLabel.getStyleClass().setAll("stat-value-success");
-            regionLabel.setText(cred.getRegion());
         } else {
             credStatusLabel.setText("None");
             credStatusLabel.getStyleClass().setAll("stat-value-warning");
-            regionLabel.setText("â€”");
         }
 
         // US-03a: resource counts from local tables
@@ -185,8 +217,8 @@ public class DashboardController {
         } else {
             credCardStatus.setText("Not configured");
             credCardStatus.getStyleClass().setAll("badge-error");
-            credCardRegion.setText("â€”");
-            credCardValidated.setText("â€”");
+            credCardRegion.setText("Ã¢â‚¬â€");
+            credCardValidated.setText("Ã¢â‚¬â€");
         }
     }
 
@@ -202,7 +234,7 @@ public class DashboardController {
         billRecordsLabel.setText(String.valueOf(records));
     }
 
-    /* â”€â”€ Sidebar active-state helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar active-state helper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
     private void setActiveButton(Button active) {
         for (Button b : new Button[]{btnOverview, btnCredentials}) {
@@ -211,7 +243,7 @@ public class DashboardController {
         }
     }
 
-    /* â”€â”€ DB utility helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ DB utility helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
     private int queryInt(String sql) {
         try (Connection c = DBConnection.getInstance().getConnection();
@@ -236,6 +268,6 @@ public class DashboardController {
     }
 
     private static String nvl(String s) {
-        return (s == null || s.isBlank()) ? "â€”" : s;
+        return (s == null || s.isBlank()) ? "Ã¢â‚¬â€" : s;
     }
 }

@@ -8,16 +8,16 @@ import java.sql.*;
  * AWSCredentialDAO - Data Access Object for AWS Credential operations
  */
 public class AWSCredentialDAO {
-    private final Connection connection;
-    
-    public AWSCredentialDAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
      * Get active AWS credentials for a user
      */
     public AWSCredential getActiveCredentials(int userId) {
+        Connection connection = conn();
         if (connection == null) return null;
         String query = "SELECT * FROM aws_credentials WHERE user_id = ? AND is_active = TRUE LIMIT 1";
         
@@ -42,6 +42,8 @@ public class AWSCredentialDAO {
         // Deactivate all existing credentials for this user first
         deactivateAllCredentials(credential.getUserId());
         
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "INSERT INTO aws_credentials (user_id, access_key, secret_key, region, remaining_credits, is_active, validated) " +
                       "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
@@ -66,6 +68,8 @@ public class AWSCredentialDAO {
      * Update credential validation status
      */
     public boolean updateValidationStatus(int credentialId, boolean validated) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "UPDATE aws_credentials SET validated = ? WHERE credential_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -84,6 +88,8 @@ public class AWSCredentialDAO {
      * Update remaining credits for active credentials
      */
     public boolean updateRemainingCredits(int userId, double remainingCredits) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "UPDATE aws_credentials SET remaining_credits = ? WHERE user_id = ? AND is_active = TRUE";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -102,6 +108,8 @@ public class AWSCredentialDAO {
      * Deactivate all credentials for a user
      */
     private void deactivateAllCredentials(int userId) {
+        Connection connection = conn();
+        if (connection == null) return;
         String query = "UPDATE aws_credentials SET is_active = FALSE WHERE user_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -116,6 +124,8 @@ public class AWSCredentialDAO {
      * Check if user has validated credentials
      */
     public boolean hasValidatedCredentials(int userId) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "SELECT COUNT(*) FROM aws_credentials WHERE user_id = ? AND is_active = TRUE AND validated = TRUE";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -135,6 +145,8 @@ public class AWSCredentialDAO {
      * Check if AWS access key already exists
      */
     public boolean accessKeyExists(String accessKey) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "SELECT COUNT(*) FROM aws_credentials WHERE access_key = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {

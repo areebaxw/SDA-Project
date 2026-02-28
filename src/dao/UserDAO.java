@@ -9,10 +9,9 @@ import java.sql.*;
  * Implements DAO pattern for database operations
  */
 public class UserDAO {
-    private final Connection connection;
-    
-    public UserDAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
@@ -22,6 +21,7 @@ public class UserDAO {
      * @return User object if authenticated, null otherwise
      */
     public User authenticateUser(String username, String password) {
+        Connection connection = conn();
         if (connection == null) return null;
         String query = "SELECT * FROM users WHERE username = ? AND password = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -53,6 +53,8 @@ public class UserDAO {
      * Update user's last login timestamp
      */
     private void updateLastLogin(int userId) {
+        Connection connection = conn();
+        if (connection == null) return;
         String query = "UPDATE users SET last_login = NOW() WHERE user_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -66,6 +68,8 @@ public class UserDAO {
      * Get user by ID
      */
     public User getUserById(int userId) {
+        Connection connection = conn();
+        if (connection == null) return null;
         String query = "SELECT * FROM users WHERE user_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -91,6 +95,8 @@ public class UserDAO {
      * Create new user
      */
     public boolean createUser(User user) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "INSERT INTO users (username, password, email, full_name, role) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, user.getUsername());
@@ -112,6 +118,8 @@ public class UserDAO {
      * Create new user and return generated user ID
      */
     public int createUserAndGetId(User user) {
+        Connection connection = conn();
+        if (connection == null) return -1;
         String query = "INSERT INTO users (username, password, email, full_name, role) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getUsername());
@@ -138,6 +146,8 @@ public class UserDAO {
      * Check if username exists
      */
     public boolean usernameExists(String username) {
+        Connection connection = conn();
+        if (connection == null) return false;
         String query = "SELECT COUNT(*) FROM users WHERE username = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, username);

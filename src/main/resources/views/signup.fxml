@@ -92,6 +92,4 @@
 
     <Region VBox.vgrow="ALWAYS"/>
 
-    <Label text="Sprint 1 – US-01: User Authentication" styleClass="hint-label"/>
-
 </VBox>

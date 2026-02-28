@@ -5,18 +5,23 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="controllers.DashboardController">
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="controllers.DashboardController">
 
     <stylesheets>
         <URL value="@../css/styles.css"/>
     </stylesheets>
+
+    <!-- ══ Main Content (fills the whole window) ══════════════════════ -->
+    <BorderPane>
 
     <!-- ── Top Bar ────────────────────────────────── -->
     <top>
         <VBox>
             <!-- Brand row -->
             <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
+                <Button fx:id="btnMenuToggle" text="☰" styleClass="hamburger-btn"
+                        onAction="#handleDrawerToggle"/>
                 <Label text="☁ AWS Cloud Governance" styleClass="dashboard-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="welcomeLabel" text="Welcome, User" styleClass="welcome-label"/>
@@ -35,11 +40,6 @@
                 <VBox styleClass="stat-card" alignment="CENTER">
                     <Label fx:id="credStatusLabel" text="—" styleClass="stat-value"/>
                     <Label text="AWS Credentials" styleClass="stat-label"/>
-                </VBox>
-
-                <VBox styleClass="stat-card" alignment="CENTER">
-                    <Label fx:id="regionLabel" text="—" styleClass="stat-value"/>
-                    <Label text="Active Region" styleClass="stat-label"/>
                 </VBox>
 
                 <Separator orientation="VERTICAL"/>
@@ -62,40 +62,13 @@
                 <Separator orientation="VERTICAL"/>
 
                 <VBox styleClass="stat-card" alignment="CENTER">
-                    <Label fx:id="monthlyCostLabel" text="$0.00" styleClass="stat-value-success"/>
+                    <Label fx:id="monthlyCostLabel" text="\$0.00" styleClass="stat-value-success"/>
                     <Label text="Cost This Month" styleClass="stat-label"/>
                 </VBox>
 
             </HBox>
         </VBox>
     </top>
-
-    <!-- ── Sidebar ───────────────────────────────── -->
-    <left>
-        <VBox styleClass="sidebar" spacing="2">
-            <Label text="OVERVIEW" styleClass="sidebar-section-label"/>
-
-            <Button fx:id="btnOverview" text="🏠  Dashboard Overview"
-                    styleClass="nav-button-active" maxWidth="Infinity"
-                    onAction="#handleOverview"/>
-
-            <Label text="ACCOUNT" styleClass="sidebar-section-label"/>
-
-            <Button fx:id="btnCredentials" text="🔑  AWS Credentials"
-                    styleClass="nav-button" maxWidth="Infinity"
-                    onAction="#handleCredentials"/>
-
-            <Region VBox.vgrow="ALWAYS"/>
-
-            <Separator/>
-
-            <Button text="⟳  Refresh" styleClass="secondary-button" maxWidth="Infinity"
-                    onAction="#handleRefresh"/>
-
-            <Button text="⎋  Logout" styleClass="nav-logout-button" maxWidth="Infinity"
-                    onAction="#handleLogout"/>
-        </VBox>
-    </left>
 
     <!-- ── Main Content ─────────────────────────── -->
     <center>
@@ -106,8 +79,6 @@
                 <VBox spacing="6">
                     <Label fx:id="contentTitle" text="Welcome to AWS Cloud Governance"
                            styleClass="content-title"/>
-                    <Label text="Sprint 1 – User &amp; Cloud Account Onboarding + Basic Cost Dashboard"
-                           styleClass="content-subtitle"/>
                 </VBox>
 
                 <!-- Info cards row 1 -->
@@ -161,11 +132,11 @@
                     <Label text="💰  Cost Summary (Sprint 1 – Local DB)" styleClass="info-card-title"/>
                     <HBox spacing="50" alignment="CENTER_LEFT">
                         <VBox spacing="4" alignment="CENTER">
-                            <Label fx:id="billMonthLabel" text="$0.00" styleClass="stat-value-success"/>
+                            <Label fx:id="billMonthLabel" text="\$0.00" styleClass="stat-value-success"/>
                             <Label text="This Month" styleClass="stat-label"/>
                         </VBox>
                         <VBox spacing="4" alignment="CENTER">
-                            <Label fx:id="billTotalLabel" text="$0.00" styleClass="stat-value"/>
+                            <Label fx:id="billTotalLabel" text="\$0.00" styleClass="stat-value"/>
                             <Label text="All-Time Total" styleClass="stat-label"/>
                         </VBox>
                         <VBox spacing="4" alignment="CENTER">
@@ -180,23 +151,63 @@
                     </HBox>
                 </VBox>
 
-                <!-- Sprint 1 roadmap note -->
-                <VBox styleClass="info-card" spacing="8">
-                    <Label text="📋  Sprint 1 Scope" styleClass="info-card-title"/>
-                    <Label text="✅  US-01a  Register user" styleClass="success-label"/>
-                    <Label text="✅  US-01b  Login user" styleClass="success-label"/>
-                    <Label text="✅  US-01c  Logout" styleClass="success-label"/>
-                    <Label text="✅  US-02a  AWS Credential form UI" styleClass="success-label"/>
-                    <Label text="✅  US-02b  Encrypt + store credentials in DB" styleClass="success-label"/>
-                    <Label text="✅  US-02c  Mock 'Test Connection' (real SDK → Sprint 2)" styleClass="success-label"/>
-                    <Label text="✅  US-03a  Dashboard reads local DB totals" styleClass="success-label"/>
-                    <Separator/>
-                    <Label text="⏳  Monitoring (EC2/RDS/ECS/SageMaker), idle detection, rules → Sprint 2"
-                           styleClass="hint-label" wrapText="true"/>
-                </VBox>
 
             </VBox>
         </ScrollPane>
     </center>
 
-</BorderPane>
+    </BorderPane>
+
+    <!-- ══ Drawer Backdrop (semi-transparent, click to close) ══════════ -->
+    <Pane fx:id="drawerOverlay" styleClass="drawer-overlay"
+          visible="false" managed="false"
+          onMouseClicked="#handleDrawerToggle"/>
+
+    <!-- ══ Drawer Panel (starts off-screen left, slides in on toggle) ═══ -->
+    <VBox fx:id="drawerPane" styleClass="drawer"
+          maxHeight="Infinity" maxWidth="260"
+          StackPane.alignment="CENTER_LEFT"
+          translateX="-260">
+
+        <!-- Drawer Header / Brand -->
+        <VBox styleClass="drawer-header" alignment="CENTER" spacing="4">
+            <Label text="☁" styleClass="drawer-logo"/>
+            <Label text="AWS Governance" styleClass="drawer-brand"/>
+            <Label text="Cloud Management Tool" styleClass="drawer-brand-sub"/>
+        </VBox>
+
+        <!-- User chip -->
+        <HBox styleClass="drawer-user-chip" alignment="CENTER_LEFT" spacing="10">
+            <Label styleClass="drawer-avatar" text="👤"/>
+            <VBox spacing="1">
+                <Label fx:id="drawerUsername" text="User" styleClass="drawer-user-name"/>
+                <Label fx:id="drawerRole" text="admin" styleClass="drawer-user-role"/>
+            </VBox>
+        </HBox>
+
+        <Separator styleClass="drawer-divider"/>
+
+        <Label text="OVERVIEW" styleClass="drawer-section-label"/>
+        <Button fx:id="btnOverview" text="🏠   Dashboard"
+                styleClass="drawer-nav-active" maxWidth="Infinity"
+                onAction="#handleOverview"/>
+
+        <Label text="ACCOUNT" styleClass="drawer-section-label"/>
+        <Button fx:id="btnCredentials" text="🔑   AWS Credentials"
+                styleClass="drawer-nav" maxWidth="Infinity"
+                onAction="#handleCredentials"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Separator styleClass="drawer-divider"/>
+
+        <VBox styleClass="drawer-footer" spacing="4">
+            <Button text="⟳   Refresh Data" styleClass="drawer-action-btn" maxWidth="Infinity"
+                    onAction="#handleRefresh"/>
+            <Button text="⎋   Logout" styleClass="drawer-logout-btn" maxWidth="Infinity"
+                    onAction="#handleLogout"/>
+        </VBox>
+
+    </VBox>
+
+</StackPane>
