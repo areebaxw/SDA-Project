@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.ALBController"
+      styleClass="monitor-root monitor-root-alb">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
+
+    <BorderPane styleClass="monitor-shell">
+        <top>
+            <VBox spacing="14" styleClass="monitor-top">
+                <HBox alignment="CENTER_LEFT" spacing="16" styleClass="monitor-hero" style="-fx-background-color: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.92));">
+                    <VBox spacing="4">
+                        <Label text="ALB Monitoring" styleClass="monitor-title"/>
+                        <Label text="Observe traffic posture, health state, and request volumes across load balancers." styleClass="monitor-subtitle" wrapText="true"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="backButton" text="← Back to Dashboard" onAction="#handleBackToDashboard" styleClass="monitor-btn-muted"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="monitor-controls">
+                    <Button text="Refresh" onAction="#handleRefresh" styleClass="monitor-btn-accent"/>
+                    <Button text="Sync from AWS" onAction="#handleSyncFromAWS" styleClass="monitor-btn-warm"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <center>
+            <VBox spacing="12" styleClass="monitor-content" BorderPane.alignment="CENTER">
+                <VBox spacing="12" styleClass="monitor-table-panel" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Load Balancer Inventory" styleClass="monitor-panel-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="DNS, scheme, and request insights" styleClass="monitor-panel-hint"/>
+                    </HBox>
+
+                    <TableView fx:id="albTable" VBox.vgrow="ALWAYS" styleClass="monitor-table">
+                        <columns>
+                            <TableColumn fx:id="nameColumn" text="Load Balancer" prefWidth="250"/>
+                            <TableColumn fx:id="dnsColumn" text="DNS Name" prefWidth="340"/>
+                            <TableColumn fx:id="stateColumn" text="State" prefWidth="120"/>
+                            <TableColumn fx:id="schemeColumn" text="Scheme" prefWidth="130"/>
+                            <TableColumn fx:id="requestCountColumn" text="Request Count" prefWidth="150"/>
+                            <TableColumn fx:id="idleColumn" text="Idle" prefWidth="90"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="monitor-action-bar">
+                    <Label text="Actions" styleClass="monitor-action-label"/>
+                    <Button text="Delete ALB" onAction="#handleDeleteALB" styleClass="monitor-btn-danger"/>
+                </HBox>
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>
