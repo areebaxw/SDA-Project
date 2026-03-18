@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.AlertController"
+      styleClass="alerts-root">
+
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
+
+    <BorderPane styleClass="alerts-shell">
+        <top>
+            <VBox spacing="14" styleClass="alerts-top">
+                <HBox alignment="CENTER_LEFT" spacing="16" styleClass="alerts-hero">
+                    <VBox spacing="4">
+                        <Label text="Alerts Management" styleClass="alerts-title"/>
+                        <Label text="Monitor active issues, resolve incidents quickly, and keep your cloud environment healthy." styleClass="alerts-subtitle" wrapText="true"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="backButton" text="← Back to Dashboard" onAction="#handleBackToDashboard" styleClass="alerts-button alerts-button-muted"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="alerts-controls">
+                    <CheckBox fx:id="showResolvedCheckBox" text="Include Resolved Alerts" onAction="#handleShowResolvedToggle" styleClass="alerts-checkbox"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#handleRefresh" styleClass="alerts-button alerts-button-accent"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <center>
+            <VBox spacing="12" styleClass="alerts-content" BorderPane.alignment="CENTER">
+                <VBox spacing="12" styleClass="alerts-table-panel" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Incident Feed" styleClass="alerts-panel-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Newest alerts appear first" styleClass="alerts-panel-hint"/>
+                    </HBox>
+
+                    <TableView fx:id="alertTable" VBox.vgrow="ALWAYS" styleClass="alerts-table">
+                        <columns>
+                            <TableColumn fx:id="resourceIdColumn" text="Resource ID" prefWidth="180"/>
+                            <TableColumn fx:id="resourceTypeColumn" text="Type" prefWidth="95"/>
+                            <TableColumn fx:id="alertTypeColumn" text="Alert Type" prefWidth="135"/>
+                            <TableColumn fx:id="severityColumn" text="Severity" prefWidth="95"/>
+                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="380"/>
+                            <TableColumn fx:id="createdAtColumn" text="Created At" prefWidth="150"/>
+                            <TableColumn fx:id="resolvedColumn" text="Resolved" prefWidth="95"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="alerts-action-bar">
+                    <Label text="Actions" styleClass="alerts-action-label"/>
+                    <Button text="Resolve Alert" onAction="#handleResolve" styleClass="alerts-button alerts-button-success"/>
+                    <Button text="Delete Alert" onAction="#handleDelete" styleClass="alerts-button alerts-button-danger"/>
+                </HBox>
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>
