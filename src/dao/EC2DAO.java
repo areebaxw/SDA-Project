@@ -10,10 +10,8 @@ import java.util.List;
  * EC2DAO - Data Access Object for EC2Instance operations
  */
 public class EC2DAO {
-    private final Connection connection;
-    
-    public EC2DAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
@@ -33,6 +31,8 @@ public class EC2DAO {
      */
     private boolean instanceExists(String instanceId) {
         String query = "SELECT COUNT(*) FROM ec2_instances WHERE instance_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, instanceId);
             ResultSet rs = stmt.executeQuery();
@@ -52,6 +52,8 @@ public class EC2DAO {
         String query = "INSERT INTO ec2_instances (instance_id, instance_type, instance_state, " +
                       "availability_zone, launch_time, cpu_utilization, network_in, network_out, " +
                       "is_idle, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, instance.getInstanceId());
@@ -87,6 +89,8 @@ public class EC2DAO {
         String query = "UPDATE ec2_instances SET instance_type = ?, instance_state = ?, " +
                       "availability_zone = ?, cpu_utilization = ?, network_in = ?, network_out = ?, " +
                       "is_idle = ?, last_checked = NOW() WHERE instance_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, instance.getInstanceType());
@@ -118,6 +122,8 @@ public class EC2DAO {
     public List<EC2Instance> getAllEC2Instances() {
         List<EC2Instance> instances = new ArrayList<>();
         String query = "SELECT * FROM ec2_instances ORDER BY last_checked DESC";
+        Connection connection = conn();
+        if (connection == null) return instances;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -137,6 +143,8 @@ public class EC2DAO {
      */
     public EC2Instance getEC2InstanceById(String instanceId) {
         String query = "SELECT * FROM ec2_instances WHERE instance_id = ?";
+        Connection connection = conn();
+        if (connection == null) return null;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, instanceId);
             ResultSet rs = stmt.executeQuery();
@@ -157,6 +165,8 @@ public class EC2DAO {
     public List<EC2Instance> getIdleEC2Instances() {
         List<EC2Instance> instances = new ArrayList<>();
         String query = "SELECT * FROM ec2_instances WHERE is_idle = TRUE";
+        Connection connection = conn();
+        if (connection == null) return instances;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -176,6 +186,8 @@ public class EC2DAO {
      */
     public int getTotalEC2Count() {
         String query = "SELECT COUNT(*) FROM ec2_instances";
+        Connection connection = conn();
+        if (connection == null) return 0;
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             if (rs.next()) {

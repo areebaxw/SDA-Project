@@ -5,14 +5,20 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
 import models.User;
+import models.AWSCredential;
 import models.EC2Instance;
 import dao.EC2DAO;
+import dao.AWSCredentialDAO;
 import aws.EC2Service;
+import aws.AWSClientFactory;
 import services.IdleDetectionService;
 import services.CombinedIdleStrategy;
 
 import java.util.List;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 /**
  * EC2Controller - Controller for EC2 instances view
@@ -53,18 +59,59 @@ public class EC2Controller {
     
     @FXML
     private Button detectIdleButton;
+
+    @FXML
+    private Button backButton;
     
     private User currentUser;
     private EC2DAO ec2DAO;
+    private AWSCredentialDAO awsCredentialDAO;
     private EC2Service ec2Service;
     private IdleDetectionService idleDetectionService;
     private ObservableList<EC2Instance> ec2Data;
     
     public EC2Controller() {
         this.ec2DAO = new EC2DAO();
-        this.ec2Service = new EC2Service();
-        this.idleDetectionService = new IdleDetectionService();
+        this.awsCredentialDAO = new AWSCredentialDAO();
+        this.ec2Service = null;
+        this.idleDetectionService = null;
         this.ec2Data = FXCollections.observableArrayList();
+    }
+
+    private EC2Service requireEC2Service() {
+        if (!AWSClientFactory.getInstance().isInitialized()) {
+            showError("AWS credentials not configured. Please configure credentials first.");
+            return null;
+        }
+
+        if (ec2Service == null) {
+            try {
+                ec2Service = new EC2Service();
+            } catch (Exception e) {
+                showError("Failed to initialize AWS EC2 client: " + e.getMessage());
+                return null;
+            }
+        }
+
+        return ec2Service;
+    }
+
+    private IdleDetectionService requireIdleDetectionService() {
+        if (!AWSClientFactory.getInstance().isInitialized()) {
+            showError("AWS credentials not configured. Please configure credentials first.");
+            return null;
+        }
+
+        if (idleDetectionService == null) {
+            try {
+                idleDetectionService = new IdleDetectionService();
+            } catch (Exception e) {
+                showError("Failed to initialize Idle Detection: " + e.getMessage());
+                return null;
+            }
+        }
+
+        return idleDetectionService;
     }
     
     @FXML
@@ -75,6 +122,23 @@ public class EC2Controller {
     
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        initializeAwsClientFromSavedCredentials();
+        loadEC2Instances();
+    }
+
+    private void initializeAwsClientFromSavedCredentials() {
+        try {
+            AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
+            if (cred != null) {
+                AWSClientFactory.getInstance().initializeCredentials(
+                        cred.getAccessKey(),
+                        cred.getSecretKey(),
+                        cred.getRegion()
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to initialize AWS client from saved credentials: " + e.getMessage());
+        }
     }
     
     private void setupTableColumns() {
@@ -98,6 +162,16 @@ public class EC2Controller {
         try {
             // Load from database
             List<EC2Instance> instances = ec2DAO.getAllEC2Instances();
+
+            // If local cache is empty, try syncing once from AWS.
+            if (instances.isEmpty() && currentUser != null && AWSClientFactory.getInstance().isInitialized()) {
+                EC2Service service = requireEC2Service();
+                if (service != null) {
+                    service.syncFromAWS(currentUser.getUserId());
+                    instances = ec2DAO.getAllEC2Instances();
+                }
+            }
+
             ec2Data.clear();
             ec2Data.addAll(instances);
             
@@ -112,8 +186,10 @@ public class EC2Controller {
     @FXML
     private void handleSyncFromAWS() {
         try {
+            EC2Service service = requireEC2Service();
+            if (service == null) return;
            
-            int syncedCount = ec2Service.syncFromAWS(currentUser.getUserId());
+            int syncedCount = service.syncFromAWS(currentUser.getUserId());
             
         
             loadEC2Instances();
@@ -131,8 +207,11 @@ public class EC2Controller {
             showWarning("Please select an instance");
             return;
         }
+
+        EC2Service service = requireEC2Service();
+        if (service == null) return;
         
-        boolean success = ec2Service.startInstance(selected.getInstanceId());
+        boolean success = service.startInstance(selected.getInstanceId());
         if (success) {
             showInfo("Instance " + selected.getInstanceId() + " started");
             handleRefresh();
@@ -148,6 +227,9 @@ public class EC2Controller {
             showWarning("Please select an instance");
             return;
         }
+
+        EC2Service service = requireEC2Service();
+        if (service == null) return;
         
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm Stop");
@@ -155,7 +237,7 @@ public class EC2Controller {
         confirmation.setContentText("Are you sure you want to stop " + selected.getInstanceId() + "?");
         
         if (confirmation.showAndWait().get() == ButtonType.OK) {
-            boolean success = ec2Service.stopInstance(selected.getInstanceId());
+            boolean success = service.stopInstance(selected.getInstanceId());
             if (success) {
                 showInfo("Instance " + selected.getInstanceId() + " stopped");
                 handleRefresh();
@@ -172,6 +254,9 @@ public class EC2Controller {
             showWarning("Please select an instance");
             return;
         }
+
+        EC2Service service = requireEC2Service();
+        if (service == null) return;
         
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm Terminate");
@@ -179,7 +264,7 @@ public class EC2Controller {
         confirmation.setContentText("⚠️ WARNING: This will PERMANENTLY DELETE " + selected.getInstanceId() + "!\nAre you sure?");
         
         if (confirmation.showAndWait().get() == ButtonType.OK) {
-            boolean success = ec2Service.terminateInstance(selected.getInstanceId());
+            boolean success = service.terminateInstance(selected.getInstanceId());
             if (success) {
                 showInfo("Instance " + selected.getInstanceId() + " terminated");
                 handleRefresh();
@@ -192,9 +277,12 @@ public class EC2Controller {
     @FXML
     private void handleDetectIdle() {
         try{
-            idleDetectionService.setStrategy(new CombinedIdleStrategy());
+            IdleDetectionService detectionService = requireIdleDetectionService();
+            if (detectionService == null) return;
+
+            detectionService.setStrategy(new CombinedIdleStrategy());
            
-            idleDetectionService.detectIdleEC2Instances(7, 5.0);
+            detectionService.detectIdleEC2Instances(7, 5.0);
             
            
             loadEC2Instances();
@@ -207,6 +295,22 @@ public class EC2Controller {
             System.err.println("Error detecting idle instances: " + e.getMessage());
             e.printStackTrace();
             showError("Error detecting idle instances: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleBackToDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 820);
+            DashboardController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Dashboard - " + currentUser.getUsername());
+            stage.show();
+        } catch (Exception e) {
+            showError("Error returning to dashboard: " + e.getMessage());
         }
     }
     

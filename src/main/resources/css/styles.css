@@ -58,7 +58,6 @@
     -fx-background-radius: 14;
     -fx-padding: 35 45 35 45;
     -fx-spacing: 16;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.12), 28, 0, 0, 6);
 }
 
 .form-title {
@@ -95,7 +94,6 @@
 .text-field:focused {
     -fx-border-color: #6366F1;
     -fx-background-color: #FFFFFF;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.15), 8, 0, 0, 0);
 }
 
 .password-field {
@@ -114,7 +112,6 @@
 .password-field:focused {
     -fx-border-color: #6366F1;
     -fx-background-color: #FFFFFF;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.15), 8, 0, 0, 0);
 }
 
 .combo-box {
@@ -158,7 +155,6 @@
 
 .primary-button:hover {
     -fx-background-color: #4F46E5;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.3), 12, 0, 0, 3);
 }
 
 .primary-button:pressed {
@@ -273,7 +269,6 @@
     -fx-padding: 14 22 14 22;
     -fx-border-color: transparent transparent #E2E8F0 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2);
 }
 
 .dashboard-title {
@@ -430,7 +425,6 @@
     -fx-background-radius: 12;
     -fx-padding: 22 24 22 24;
     -fx-spacing: 10;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);
 }
 
 .info-card-title {
@@ -553,7 +547,6 @@
     -fx-max-width: 260;
     -fx-spacing: 2;
     -fx-padding: 0;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 24, 0, 6, 0);
 }
 
 /* Drawer Header â€” branded top block */
@@ -647,7 +640,6 @@
     -fx-cursor: hand;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.45), 10, 0, 0, 2);
 }
 
 /* Drawer divider */

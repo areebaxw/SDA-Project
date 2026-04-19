@@ -1,89 +1,86 @@
 package controllers;
 
+import dao.AWSCredentialDAO;
+import aws.AWSClientFactory;
+import database.DBConnection;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
-import models.User;
 import models.AWSCredential;
-import dao.AWSCredentialDAO;
-import database.DBConnection;
+import models.User;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 /**
- * DashboardController  Ã¢â‚¬â€œ  US-03: Basic Dashboard (local DB data)
- *
- * Structured Spec
- *   Preconditions : user is logged in
- *   Main flow     : query local DB Ã¢â€ â€™ display resource counts + cost totals
- *   Sprint 1 note : EC2/RDS/ECS rows will be 0 (sync not yet done).
- *                   Billing shows $0.00 until Sprint 2 populates live data.
- *
- * US-01c Ã¢â‚¬â€œ Logout is handled by handleLogout().
+ * DashboardController - revamped monitoring dashboard
+ * Monitors EC2, S3, SQS, and ALB resources.
  */
 public class DashboardController {
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ FXML bindings Ã¢â‚¬â€œ top bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Button btnMenuToggle;
-    @FXML private VBox   drawerPane;
-    @FXML private Pane   drawerOverlay;
-    @FXML private Label  welcomeLabel;
-    @FXML private Label  roleBadge;
-    @FXML private Label  drawerUsername;
-    @FXML private Label  drawerRole;
+    @FXML private VBox drawerPane;
+    @FXML private Pane drawerOverlay;
+    @FXML private Label welcomeLabel;
+    @FXML private Label roleBadge;
+    @FXML private Label drawerUsername;
+    @FXML private Label drawerRole;
 
-    private boolean drawerOpen = false;
-    private static final double DRAWER_WIDTH = 260;
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Stat bar labels Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label userCountLabel;
     @FXML private Label credStatusLabel;
     @FXML private Label ec2Label;
-    @FXML private Label rdsLabel;
-    @FXML private Label ecsLabel;
+    @FXML private Label s3Label;
+    @FXML private Label sqsLabel;
+    @FXML private Label albLabel;
     @FXML private Label monthlyCostLabel;
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ account card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label cardUsername;
     @FXML private Label cardFullName;
     @FXML private Label cardEmail;
     @FXML private Label cardRole;
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ credential card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label credCardStatus;
     @FXML private Label credCardRegion;
     @FXML private Label credCardValidated;
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Content area Ã¢â‚¬â€œ billing card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Label billMonthLabel;
     @FXML private Label billTotalLabel;
     @FXML private Label billRecordsLabel;
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar buttons Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @FXML private Button btnOverview;
+    @FXML private Button btnEC2;
+    @FXML private Button btnS3;
+    @FXML private Button btnSQS;
+    @FXML private Button btnALB;
+    @FXML private Button btnBilling;
+    @FXML private Button btnRules;
+    @FXML private Button btnAlerts;
     @FXML private Button btnCredentials;
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Layout Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
-    @FXML private VBox contentArea;
-    @FXML private Label contentTitle;
+    private boolean drawerOpen = false;
+    private static final double DRAWER_WIDTH = 260;
 
     private User currentUser;
     private final AWSCredentialDAO awsCredentialDAO = new AWSCredentialDAO();
 
     @FXML
-    private void initialize() { /* data loaded after setCurrentUser() */ }
+    private void initialize() {
+        // Data loads after setCurrentUser() is called.
+    }
 
-    /** Toggle the overlay drawer open/closed with a slide animation. */
     @FXML
     private void handleDrawerToggle() {
         TranslateTransition tt = new TranslateTransition(Duration.millis(280), drawerPane);
         if (!drawerOpen) {
-            // Show overlay
             drawerOverlay.setVisible(true);
             drawerOverlay.setManaged(true);
             tt.setToX(0);
@@ -100,9 +97,9 @@ public class DashboardController {
         }
     }
 
-    /** Called by LoginController or CredentialsController after scene creation. */
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        initializeAwsClientFromSavedCredentials();
         populateTopBar();
         populateStatBar();
         populateAccountCard();
@@ -110,74 +107,222 @@ public class DashboardController {
         populateBillingCard();
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+    private void initializeAwsClientFromSavedCredentials() {
+        try {
+            AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
+            if (cred != null) {
+                AWSClientFactory.getInstance().initializeCredentials(
+                        cred.getAccessKey(),
+                        cred.getSecretKey(),
+                        cred.getRegion()
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to initialize AWS client from saved credentials: " + e.getMessage());
+        }
+    }
 
     @FXML
     private void handleOverview() {
         setActiveButton(btnOverview);
     }
 
-    /** US-02: Navigate to credentials setup from inside the dashboard. */
     @FXML
     private void handleCredentials() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/credentials.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/credentials.fxml"));
             Scene scene = new Scene(loader.load(), 860, 680);
             CredentialsController ctrl = loader.getController();
             ctrl.setCurrentUser(currentUser);
             Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
             stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool Ã¢â‚¬â€œ Credentials");
+            stage.setTitle("AWS Governance Tool - Credentials");
             stage.show();
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleEC2() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ec2.fxml"));
+            Scene scene = new Scene(loader.load(), 980, 700);
+            EC2Controller ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - EC2 Monitoring");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open EC2 Monitoring");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleS3() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/s3.fxml"));
+            Scene scene = new Scene(loader.load(), 980, 700);
+            S3Controller ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - S3 Monitoring");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open S3 Monitoring");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleSQS() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/sqs.fxml"));
+            Scene scene = new Scene(loader.load(), 980, 700);
+            SQSController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - SQS Monitoring");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open SQS Monitoring");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleALB() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/alb.fxml"));
+            Scene scene = new Scene(loader.load(), 980, 700);
+            ALBController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - ALB Monitoring");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open ALB Monitoring");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleBilling() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/billing.fxml"));
+            Scene scene = new Scene(loader.load(), 1100, 760);
+            BillingController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - Billing Reports");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open Billing Reports");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleRules() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/rules.fxml"));
+            Scene scene = new Scene(loader.load(), 1100, 760);
+            RuleController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - Rules");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open Rules");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleAlerts() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/alerts.fxml"));
+            Scene scene = new Scene(loader.load(), 1100, 760);
+            AlertController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Tool - Alerts");
+            stage.show();
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open Alerts");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
         }
     }
 
     @FXML
     private void handleRefresh() {
-        if (currentUser != null) setCurrentUser(currentUser);
+        if (currentUser != null) {
+            setCurrentUser(currentUser);
+        }
     }
 
-    /**
-     * US-01c Ã¢â‚¬â€œ Logout: clear session and return to login screen.
-     */
     @FXML
     private void handleLogout() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
             Scene scene = new Scene(loader.load(), 800, 620);
             Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
             stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool Ã¢â‚¬â€œ Login");
+            stage.setTitle("AWS Governance Tool - Login");
             stage.setMinWidth(600);
             stage.setMinHeight(500);
             stage.show();
-            System.out.println("Ã¢Å“â€œ User logged out: " + currentUser.getUsername());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Data population Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
     private void populateTopBar() {
         welcomeLabel.setText("Welcome, " + currentUser.getFullName());
         roleBadge.setText(currentUser.getRole());
         boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
         roleBadge.getStyleClass().setAll(isAdmin ? "badge-success" : "badge-warning");
-        if (drawerUsername != null) drawerUsername.setText(currentUser.getUsername());
-        if (drawerRole != null) drawerRole.setText(currentUser.getRole().toUpperCase());
+
+        if (drawerUsername != null) {
+            drawerUsername.setText(currentUser.getUsername());
+        }
+        if (drawerRole != null) {
+            drawerRole.setText(currentUser.getRole().toUpperCase());
+        }
     }
 
     private void populateStatBar() {
-        // User count from DB
-        int userCount = queryInt("SELECT COUNT(*) FROM users");
-        userCountLabel.setText(String.valueOf(userCount));
+        userCountLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM users")));
 
-        // Credential status
         AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
         if (cred != null) {
             credStatusLabel.setText("Saved");
@@ -187,15 +332,14 @@ public class DashboardController {
             credStatusLabel.getStyleClass().setAll("stat-value-warning");
         }
 
-        // US-03a: resource counts from local tables
         ec2Label.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM ec2_instances")));
-        rdsLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM rds_instances")));
-        ecsLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM ecs_services")));
+        s3Label.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM s3_buckets")));
+        sqsLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM sqs_queues")));
+        albLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM alb_resources")));
 
-        // Monthly cost from billing table (will be $0 until Sprint 2 syncs live data)
         double monthly = queryDouble(
-            "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
-            "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
+                "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
+                "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
         monthlyCostLabel.setText(String.format("$%.2f", monthly));
     }
 
@@ -212,43 +356,50 @@ public class DashboardController {
             credCardStatus.setText("Saved");
             credCardStatus.getStyleClass().setAll("badge-success");
             credCardRegion.setText(cred.getRegion());
-            credCardValidated.setText("Pending (Sprint 2)");
-            credCardValidated.getStyleClass().setAll("badge-warning");
+            credCardValidated.setText("Validated");
+            credCardValidated.getStyleClass().setAll("badge-success");
         } else {
             credCardStatus.setText("Not configured");
             credCardStatus.getStyleClass().setAll("badge-error");
-            credCardRegion.setText("Ã¢â‚¬â€");
-            credCardValidated.setText("Ã¢â‚¬â€");
+            credCardRegion.setText("-");
+            credCardValidated.setText("Pending");
+            credCardValidated.getStyleClass().setAll("badge-warning");
         }
     }
 
     private void populateBillingCard() {
         double monthly = queryDouble(
-            "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
-            "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
-        double total   = queryDouble("SELECT IFNULL(SUM(cost_amount),0) FROM billing_records");
-        int    records = queryInt  ("SELECT COUNT(*) FROM billing_records");
+                "SELECT IFNULL(SUM(cost_amount),0) FROM billing_records " +
+                "WHERE MONTH(start_date)=MONTH(NOW()) AND YEAR(start_date)=YEAR(NOW())");
+        double total = queryDouble("SELECT IFNULL(SUM(cost_amount),0) FROM billing_records");
+        int records = queryInt("SELECT COUNT(*) FROM billing_records");
 
         billMonthLabel.setText(String.format("$%.2f", monthly));
         billTotalLabel.setText(String.format("$%.2f", total));
         billRecordsLabel.setText(String.valueOf(records));
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar active-state helper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
-
     private void setActiveButton(Button active) {
-        for (Button b : new Button[]{btnOverview, btnCredentials}) {
+        for (Button b : new Button[]{
+                btnOverview,
+                btnEC2,
+                btnS3,
+                btnSQS,
+                btnALB,
+                btnBilling,
+                btnRules,
+                btnAlerts,
+                btnCredentials
+        }) {
             if (b == null) continue;
-            b.getStyleClass().setAll(b == active ? "nav-button-active" : "nav-button");
+            b.getStyleClass().setAll(b == active ? "drawer-nav-active" : "drawer-nav");
         }
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ DB utility helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
-
     private int queryInt(String sql) {
         try (Connection c = DBConnection.getInstance().getConnection();
-             Statement  s = c.createStatement();
-             ResultSet  r = s.executeQuery(sql)) {
+             Statement s = c.createStatement();
+             ResultSet r = s.executeQuery(sql)) {
             return r.next() ? r.getInt(1) : 0;
         } catch (Exception e) {
             System.err.println("queryInt failed [" + sql + "]: " + e.getMessage());
@@ -258,8 +409,8 @@ public class DashboardController {
 
     private double queryDouble(String sql) {
         try (Connection c = DBConnection.getInstance().getConnection();
-             Statement  s = c.createStatement();
-             ResultSet  r = s.executeQuery(sql)) {
+             Statement s = c.createStatement();
+             ResultSet r = s.executeQuery(sql)) {
             return r.next() ? r.getDouble(1) : 0.0;
         } catch (Exception e) {
             System.err.println("queryDouble failed [" + sql + "]: " + e.getMessage());
@@ -267,7 +418,7 @@ public class DashboardController {
         }
     }
 
-    private static String nvl(String s) {
-        return (s == null || s.isBlank()) ? "Ã¢â‚¬â€" : s;
+    private String nvl(String s) {
+        return (s == null || s.isBlank()) ? "-" : s;
     }
 }

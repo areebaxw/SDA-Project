@@ -10,10 +10,8 @@ import java.util.List;
  * RuleDAO - Data Access Object for Rule operations
  */
 public class RuleDAO {
-    private final Connection connection;
-    
-    public RuleDAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
@@ -22,6 +20,8 @@ public class RuleDAO {
     public List<Rule> getAllActiveRules() {
         List<Rule> rules = new ArrayList<>();
         String query = "SELECT * FROM rules WHERE is_active = TRUE";
+        Connection connection = conn();
+        if (connection == null) return rules;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -42,6 +42,8 @@ public class RuleDAO {
     public List<Rule> getAllRules() {
         List<Rule> rules = new ArrayList<>();
         String query = "SELECT * FROM rules ORDER BY created_at DESC";
+        Connection connection = conn();
+        if (connection == null) return rules;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -62,6 +64,8 @@ public class RuleDAO {
     public List<Rule> getRulesByResourceType(String resourceType) {
         List<Rule> rules = new ArrayList<>();
         String query = "SELECT * FROM rules WHERE resource_type = ? AND is_active = TRUE";
+        Connection connection = conn();
+        if (connection == null) return rules;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, resourceType);
@@ -84,6 +88,8 @@ public class RuleDAO {
         String query = "INSERT INTO rules (rule_name, rule_type, resource_type, condition_metric, " +
                       "condition_operator, condition_value, condition_duration, duration_unit, action_type, is_active, created_by) " +
                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, rule.getRuleName());
@@ -114,6 +120,8 @@ public class RuleDAO {
         String query = "UPDATE rules SET rule_name = ?, rule_type = ?, resource_type = ?, " +
                       "condition_metric = ?, condition_operator = ?, condition_value = ?, " +
                       "condition_duration = ?, action_type = ?, is_active = ? WHERE rule_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, rule.getRuleName());
@@ -141,6 +149,8 @@ public class RuleDAO {
      */
     public boolean deleteRule(int ruleId) {
         String query = "DELETE FROM rules WHERE rule_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, ruleId);
             int rowsAffected = stmt.executeUpdate();
@@ -157,6 +167,8 @@ public class RuleDAO {
      */
     public boolean toggleRuleStatus(int ruleId) {
         String query = "UPDATE rules SET is_active = NOT is_active WHERE rule_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, ruleId);
             int rowsAffected = stmt.executeUpdate();

@@ -22,11 +22,9 @@
     <Label text="AWS Cloud Governance Tool" styleClass="app-title"/>
     <Label text="Create Your Account" styleClass="app-subtitle"/>
 
-    <Region VBox.vgrow="ALWAYS" minHeight="10"/>
-
     <!-- Signup card -->
-    <ScrollPane fitToWidth="true" styleClass="scroll-pane" hbarPolicy="NEVER" maxHeight="580">
-        <VBox styleClass="auth-panel" alignment="CENTER" maxWidth="420">
+    <StackPane VBox.vgrow="NEVER" alignment="CENTER">
+        <VBox styleClass="auth-panel" alignment="CENTER" maxWidth="420" minWidth="360">
 
             <Label text="Register" styleClass="form-title"/>
 
@@ -88,8 +86,6 @@
             </HBox>
 
         </VBox>
-    </ScrollPane>
-
-    <Region VBox.vgrow="ALWAYS"/>
+    </StackPane>
 
 </VBox>

@@ -3,12 +3,12 @@ package aws;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.rds.RdsClient;
-import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.sagemaker.SageMakerClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.costexplorer.CostExplorerClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sts.StsClient;
 
 /**
@@ -23,9 +23,9 @@ public class AWSClientFactory {
     private Region region;
     
     private Ec2Client ec2Client;
-    private RdsClient rdsClient;
-    private EcsClient ecsClient;
-    private SageMakerClient sageMakerClient;
+    private S3Client s3Client;
+    private SqsClient sqsClient;
+    private ElasticLoadBalancingV2Client elbv2Client;
     private CloudWatchClient cloudWatchClient;
     private CostExplorerClient costExplorerClient;
     private StsClient stsClient;
@@ -79,42 +79,42 @@ public class AWSClientFactory {
     }
     
     /**
-     * Factory Method: Get RDS Client
+     * Factory Method: Get S3 Client
      */
-    public RdsClient getRDSClient() {
-        if (rdsClient == null) {
-            rdsClient = RdsClient.builder()
+    public S3Client getS3Client() {
+        if (s3Client == null) {
+            s3Client = S3Client.builder()
                     .region(region)
                     .credentialsProvider(getCredentialsProvider())
                     .build();
         }
-        return rdsClient;
+        return s3Client;
     }
     
     /**
-     * Factory Method: Get ECS Client
+     * Factory Method: Get SQS Client
      */
-    public EcsClient getECSClient() {
-        if (ecsClient == null) {
-            ecsClient = EcsClient.builder()
+    public SqsClient getSQSClient() {
+        if (sqsClient == null) {
+            sqsClient = SqsClient.builder()
                     .region(region)
                     .credentialsProvider(getCredentialsProvider())
                     .build();
         }
-        return ecsClient;
+        return sqsClient;
     }
     
     /**
-     * Factory Method: Get SageMaker Client
+     * Factory Method: Get ALB v2 Client
      */
-    public SageMakerClient getSageMakerClient() {
-        if (sageMakerClient == null) {
-            sageMakerClient = SageMakerClient.builder()
+    public ElasticLoadBalancingV2Client getALBClient() {
+        if (elbv2Client == null) {
+            elbv2Client = ElasticLoadBalancingV2Client.builder()
                     .region(region)
                     .credentialsProvider(getCredentialsProvider())
                     .build();
         }
-        return sageMakerClient;
+        return elbv2Client;
     }
     
     /**
@@ -180,17 +180,17 @@ public class AWSClientFactory {
             ec2Client.close();
             ec2Client = null;
         }
-        if (rdsClient != null) {
-            rdsClient.close();
-            rdsClient = null;
+        if (s3Client != null) {
+            s3Client.close();
+            s3Client = null;
         }
-        if (ecsClient != null) {
-            ecsClient.close();
-            ecsClient = null;
+        if (sqsClient != null) {
+            sqsClient.close();
+            sqsClient = null;
         }
-        if (sageMakerClient != null) {
-            sageMakerClient.close();
-            sageMakerClient = null;
+        if (elbv2Client != null) {
+            elbv2Client.close();
+            elbv2Client = null;
         }
         if (cloudWatchClient != null) {
             cloudWatchClient.close();

@@ -10,10 +10,8 @@ import java.util.List;
  * AlertDAO - Data Access Object for Alert operations
  */
 public class AlertDAO {
-    private final Connection connection;
-    
-    public AlertDAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
@@ -22,6 +20,8 @@ public class AlertDAO {
     public List<Alert> getUnresolvedAlerts() {
         List<Alert> alerts = new ArrayList<>();
         String query = "SELECT * FROM alerts WHERE is_resolved = FALSE ORDER BY created_at DESC";
+        Connection connection = conn();
+        if (connection == null) return alerts;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -42,6 +42,8 @@ public class AlertDAO {
     public List<Alert> getAllAlerts() {
         List<Alert> alerts = new ArrayList<>();
         String query = "SELECT * FROM alerts ORDER BY created_at DESC";
+        Connection connection = conn();
+        if (connection == null) return alerts;
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -62,6 +64,8 @@ public class AlertDAO {
     public List<Alert> getAlertsByResourceType(String resourceType) {
         List<Alert> alerts = new ArrayList<>();
         String query = "SELECT * FROM alerts WHERE resource_type = ? ORDER BY created_at DESC";
+        Connection connection = conn();
+        if (connection == null) return alerts;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, resourceType);
@@ -83,6 +87,8 @@ public class AlertDAO {
     public int getAlertCountBySeverity(String severity, boolean unresolvedOnly) {
         String query = "SELECT COUNT(*) FROM alerts WHERE severity = ?" + 
                       (unresolvedOnly ? " AND is_resolved = FALSE" : "");
+        Connection connection = conn();
+        if (connection == null) return 0;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, severity);
@@ -100,8 +106,10 @@ public class AlertDAO {
      * Create new alert
      */
     public boolean createAlert(Alert alert) {
-        String query = "INSERT INTO alerts (resource_id, resource_type, alert_type, severity, message, rule_id, is_resolved) " +
-                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO alerts (resource_id, resource_type, alert_type, severity, message, rule_id, is_resolved, created_at) " +
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, alert.getResourceId());
@@ -119,6 +127,13 @@ public class AlertDAO {
             
             stmt.setBoolean(7, alert.isResolved());
             
+            // Set the created_at timestamp
+            if (alert.getCreatedAt() != null) {
+                stmt.setTimestamp(8, java.sql.Timestamp.valueOf(alert.getCreatedAt()));
+            } else {
+                stmt.setTimestamp(8, new java.sql.Timestamp(System.currentTimeMillis()));
+            }
+            
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -133,6 +148,8 @@ public class AlertDAO {
      */
     public boolean resolveAlert(int alertId) {
         String query = "UPDATE alerts SET is_resolved = TRUE, resolved_at = NOW() WHERE alert_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, alertId);
             int rowsAffected = stmt.executeUpdate();
@@ -149,6 +166,8 @@ public class AlertDAO {
      */
     public boolean deleteAlert(int alertId) {
         String query = "DELETE FROM alerts WHERE alert_id = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, alertId);
             int rowsAffected = stmt.executeUpdate();
@@ -165,6 +184,8 @@ public class AlertDAO {
      */
     public int getTotalAlertCount(boolean unresolvedOnly) {
         String query = "SELECT COUNT(*) FROM alerts" + (unresolvedOnly ? " WHERE is_resolved = FALSE" : "");
+        Connection connection = conn();
+        if (connection == null) return 0;
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             if (rs.next()) {

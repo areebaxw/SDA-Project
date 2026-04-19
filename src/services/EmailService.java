@@ -12,7 +12,7 @@ import java.util.Properties;
 public class EmailService {
     private static EmailService instance;
     private final String fromEmail = "mahadmalik1090@gmail.com";
-    private final String password = "mzuwobmonfpkvmdw"; // Gmail App Password (spaces removed)
+    private final String password = "mzuwobmonfpkvmdw"; 
     
     private EmailService() {}
     

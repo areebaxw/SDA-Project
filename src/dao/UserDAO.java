@@ -10,8 +10,18 @@ import java.sql.*;
  */
 public class UserDAO {
 
+    private Connection connection;
+
+    public UserDAO() {
+        this.connection = DBConnection.getInstance().getConnection();
+    }
+
+    public UserDAO(Connection connection) {
+        this.connection = connection;
+    }
+
     private Connection conn() {
-        return DBConnection.getInstance().getConnection();
+        return this.connection;
     }
     
     /**
@@ -157,6 +167,45 @@ public class UserDAO {
             }
         } catch (SQLException e) {
             System.err.println("Error checking username: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Update user
+     */
+    public boolean updateUser(User user) {
+        Connection connection = conn();
+        if (connection == null) return false;
+        String query = "UPDATE users SET username = ?, password = ?, email = ?, full_name = ?, role = ? WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getFullName());
+            stmt.setString(5, user.getRole());
+            stmt.setInt(6, user.getUserId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating user: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Delete user
+     */
+    public boolean deleteUser(int userId) {
+        Connection connection = conn();
+        if (connection == null) return false;
+        String query = "DELETE FROM users WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting user: " + e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }

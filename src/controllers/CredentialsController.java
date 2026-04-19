@@ -8,6 +8,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import aws.AWSClientFactory;
 import models.AWSCredential;
 import models.User;
 import dao.AWSCredentialDAO;
@@ -127,6 +128,8 @@ public class CredentialsController {
             showError("Failed to save credentials. Please try again.");
             return;
         }
+
+        AWSClientFactory.getInstance().initializeCredentials(accessKey, secretKey, region);
 
         System.out.println("✓ AWS credentials saved for user: " + currentUser.getUsername());
         openDashboard();

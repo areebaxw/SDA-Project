@@ -12,10 +12,8 @@ import java.util.Map;
  * BillingDAO - Data Access Object for BillingRecord operations
  */
 public class BillingDAO {
-    private final Connection connection;
-    
-    public BillingDAO() {
-        this.connection = DBConnection.getInstance().getConnection();
+    private Connection conn() {
+        return DBConnection.getInstance().getConnection();
     }
     
     /**
@@ -24,6 +22,8 @@ public class BillingDAO {
     public List<BillingRecord> getBillingRecordsByUser(int userId) {
         List<BillingRecord> records = new ArrayList<>();
         String query = "SELECT * FROM billing_records WHERE user_id = ? ORDER BY end_date DESC";
+        Connection connection = conn();
+        if (connection == null) return records;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -46,6 +46,8 @@ public class BillingDAO {
         List<BillingRecord> records = new ArrayList<>();
         // Changed query to use overlap logic: record overlaps if it starts before end and ends after start
         String query = "SELECT * FROM billing_records WHERE user_id = ? AND start_date <= ? AND end_date >= ? ORDER BY end_date DESC";
+        Connection connection = conn();
+        if (connection == null) return records;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -72,6 +74,8 @@ public class BillingDAO {
         String query = "SELECT service_name, SUM(cost_amount) as total_cost " +
                       "FROM billing_records WHERE user_id = ? AND start_date <= ? AND end_date >= ? " +
                       "GROUP BY service_name";
+        Connection connection = conn();
+        if (connection == null) return costMap;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -96,6 +100,8 @@ public class BillingDAO {
         // Use overlap logic: record overlaps if it starts before end and ends after start
         String query = "SELECT SUM(cost_amount) as total FROM billing_records " +
                       "WHERE user_id = ? AND start_date <= ? AND end_date >= ?";
+        Connection connection = conn();
+        if (connection == null) return 0.0;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -119,6 +125,8 @@ public class BillingDAO {
     public boolean insertBillingRecord(BillingRecord record) {
         String query = "INSERT INTO billing_records (user_id, service_name, cost_amount, currency, " +
                       "start_date, end_date, record_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, record.getUserId());
@@ -144,6 +152,8 @@ public class BillingDAO {
     public boolean recordExists(int userId, String serviceName, Date startDate, Date endDate) {
         String query = "SELECT COUNT(*) FROM billing_records WHERE user_id = ? AND service_name = ? " +
                       "AND start_date = ? AND end_date = ?";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
@@ -178,6 +188,8 @@ public class BillingDAO {
                       "start_date, end_date, record_type) VALUES (?, ?, ?, ?, ?, ?, ?) " +
                       "ON DUPLICATE KEY UPDATE cost_amount = VALUES(cost_amount), " +
                       "currency = VALUES(currency), record_type = VALUES(record_type)";
+        Connection connection = conn();
+        if (connection == null) return false;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, record.getUserId());
@@ -216,6 +228,8 @@ public class BillingDAO {
             // Update existing record
             String query = "UPDATE billing_records SET cost_amount = ?, currency = ?, record_type = ? " +
                           "WHERE user_id = ? AND service_name = ? AND start_date = ? AND end_date = ?";
+            Connection connection = conn();
+            if (connection == null) return false;
             
             try (PreparedStatement stmt = connection.prepareStatement(query)) {
                 stmt.setDouble(1, record.getCostAmount());
@@ -250,6 +264,8 @@ public class BillingDAO {
                       "DATE_FORMAT(start_date, '%Y-%m') as month, MIN(start_date) as start_date, MAX(end_date) as end_date " +
                       "FROM billing_records WHERE user_id = ? AND start_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) " +
                       "GROUP BY service_name, month ORDER BY month DESC, service_name";
+        Connection connection = conn();
+        if (connection == null) return records;
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);

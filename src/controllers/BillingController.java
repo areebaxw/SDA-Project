@@ -1,21 +1,21 @@
 package controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.PieChart;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import models.User;
 import models.BillingRecord;
-import dao.BillingDAO;
 import aws.BillingService;
 import aws.AWSClientFactory;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 /**
  * BillingController - Controller for billing reports view
@@ -44,14 +44,15 @@ public class BillingController {
     
     @FXML
     private PieChart costPieChart;
+
+    @FXML
+    private Button backButton;
     
     private User currentUser;
-    private BillingDAO billingDAO;
     private BillingService billingService;
     private ObservableList<BillingRecord> billingData;
     
     public BillingController() {
-        this.billingDAO = new BillingDAO();
         this.billingService = new BillingService();
         this.billingData = FXCollections.observableArrayList();
     }
@@ -155,29 +156,6 @@ public class BillingController {
         }
     }
     
-    private void updateCostChart(LocalDate startDate, LocalDate endDate) {
-        try {
-            Map<String, Double> costByService = billingDAO.getCostByService(
-                currentUser.getUserId(),
-                Date.valueOf(startDate),
-                Date.valueOf(endDate)
-            );
-            
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-            
-            for (Map.Entry<String, Double> entry : costByService.entrySet()) {
-                pieChartData.add(new PieChart.Data(
-                    entry.getKey() + " ($" + String.format("%.4f", entry.getValue()) + ")",
-                    entry.getValue()
-                ));
-            }
-            
-            costPieChart.setData(pieChartData);
-        } catch (Exception e) {
-            System.err.println("Error updating cost chart: " + e.getMessage());
-        }
-    }
-    
     private void updateCostChartFromRecords(List<BillingRecord> records) {
         try {
             ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
@@ -239,6 +217,22 @@ public class BillingController {
     @FXML
     private void handleFilter() {
         loadBillingRecords();
+    }
+
+    @FXML
+    private void handleBackToDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 820);
+            DashboardController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Dashboard - " + currentUser.getUsername());
+            stage.show();
+        } catch (Exception e) {
+            showError("Error returning to dashboard: " + e.getMessage());
+        }
     }
     
     private void showInfo(String message) {

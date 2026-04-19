@@ -15,6 +15,9 @@
     <HBox alignment="CENTER_LEFT" spacing="15">
         <Label text="Governance Rules Management" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
         <Region HBox.hgrow="ALWAYS"/>
+
+        <Button fx:id="backButton" text="Back to Dashboard" onAction="#handleBackToDashboard"
+            style="-fx-background-color: #6B7280; -fx-text-fill: white;"/>
         
         <Button text="Refresh" onAction="#handleRefresh"
                 style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
@@ -45,6 +48,11 @@
                 
                 <Button text="Delete Rule" onAction="#handleDelete"
                         style="-fx-background-color: #F44336; -fx-text-fill: white;"/>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <Button text="Run Rules Now" onAction="#handleRunRulesNow"
+                        style="-fx-background-color: #FF9800; -fx-text-fill: white; -fx-font-weight: bold;"/>
             </HBox>
         </VBox>
         
@@ -69,8 +77,8 @@
                 
                 <Label text="Condition Settings" style="-fx-font-weight: bold;"/>
                 
-                <Label text="Metric (e.g., CPU):"/>
-                <TextField fx:id="metricField" promptText="CPU"/>
+                <Label text="Metric:"/>
+                <ComboBox fx:id="metricCombo" promptText="Select metric" maxWidth="Infinity"/>
                 
                 <Label text="Operator:"/>
                 <ComboBox fx:id="operatorCombo" promptText="Select operator" maxWidth="Infinity"/>

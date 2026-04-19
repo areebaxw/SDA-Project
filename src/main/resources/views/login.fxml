@@ -88,6 +88,4 @@
 
     <Region VBox.vgrow="ALWAYS"/>
 
-    <Label text="Sprint 1 – User &amp; Cloud Account Onboarding" styleClass="hint-label"/>
-
 </VBox>

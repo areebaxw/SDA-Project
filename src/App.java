@@ -5,12 +5,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import database.DBConnection;
 
-/**
- * App â€“ JavaFX entry point for Sprint 1
- *
- * Sprint 1 module: User & Cloud Account Onboarding + Basic Cost Dashboard
- * Flow:  Login â†’ (Credentials Setup) â†’ Dashboard
- */
+
 public class App extends Application {
 
     @Override
@@ -27,7 +22,7 @@ public class App extends Application {
             Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
             Scene scene = new Scene(root, 800, 620);
 
-            primaryStage.setTitle("AWS Cloud Governance Tool â€“ Sprint 1");
+            primaryStage.setTitle("AWS Cloud Governance - Monitoring Console");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
             primaryStage.setMinWidth(600);

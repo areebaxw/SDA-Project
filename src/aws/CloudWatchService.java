@@ -92,6 +92,44 @@ public class CloudWatchService {
         }
         return 0.0;
     }
+
+    /**
+     * Get EC2 Network Out metric
+     */
+    public double getEC2NetworkOut(String instanceId, int daysBack) {
+        try {
+            Dimension dimension = Dimension.builder()
+                    .name("InstanceId")
+                    .value(instanceId)
+                    .build();
+
+            Instant endTime = Instant.now();
+            Instant startTime = endTime.minus(daysBack, ChronoUnit.DAYS);
+
+            GetMetricStatisticsRequest request = GetMetricStatisticsRequest.builder()
+                    .namespace("AWS/EC2")
+                    .metricName("NetworkOut")
+                    .dimensions(dimension)
+                    .startTime(startTime)
+                    .endTime(endTime)
+                    .period(86400)
+                    .statistics(Statistic.AVERAGE)
+                    .build();
+
+            GetMetricStatisticsResponse response = cloudWatchClient.getMetricStatistics(request);
+
+            if (!response.datapoints().isEmpty()) {
+                double sum = 0;
+                for (Datapoint datapoint : response.datapoints()) {
+                    sum += datapoint.average();
+                }
+                return sum / response.datapoints().size();
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting EC2 Network Out metrics: " + e.getMessage());
+        }
+        return 0.0;
+    }
     
     /**
      * Get RDS CPU utilization
@@ -205,5 +243,53 @@ public class CloudWatchService {
             System.err.println("Error getting SageMaker invocation metrics: " + e.getMessage());
         }
         return 0;
+    }
+
+    /**
+     * Get ALB request count sum for the given load balancer ARN.
+     */
+    public long getALBRequestCount(String loadBalancerArn, int daysBack) {
+        try {
+            String dimensionValue = extractAlbDimension(loadBalancerArn);
+            if (dimensionValue == null || dimensionValue.isBlank()) {
+                return 0;
+            }
+
+            Dimension dimension = Dimension.builder()
+                    .name("LoadBalancer")
+                    .value(dimensionValue)
+                    .build();
+
+            Instant endTime = Instant.now();
+            Instant startTime = endTime.minus(daysBack, ChronoUnit.DAYS);
+
+            GetMetricStatisticsRequest request = GetMetricStatisticsRequest.builder()
+                    .namespace("AWS/ApplicationELB")
+                    .metricName("RequestCount")
+                    .dimensions(dimension)
+                    .startTime(startTime)
+                    .endTime(endTime)
+                    .period(86400)
+                    .statistics(Statistic.SUM)
+                    .build();
+
+            GetMetricStatisticsResponse response = cloudWatchClient.getMetricStatistics(request);
+            long sum = 0;
+            for (Datapoint datapoint : response.datapoints()) {
+                sum += datapoint.sum() != null ? datapoint.sum().longValue() : 0;
+            }
+            return sum;
+        } catch (Exception e) {
+            System.err.println("Error getting ALB request count metrics: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private String extractAlbDimension(String loadBalancerArn) {
+        int idx = loadBalancerArn.indexOf("loadbalancer/");
+        if (idx < 0) {
+            return null;
+        }
+        return loadBalancerArn.substring(idx + "loadbalancer/".length());
     }
 }

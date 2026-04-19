@@ -1,13 +1,17 @@
 package controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import models.User;
 import models.Rule;
 import dao.RuleDAO;
+import services.RuleEvaluationService;
 
 import java.util.List;
 
@@ -46,7 +50,7 @@ public class RuleController {
     private ComboBox<String> actionTypeCombo;
     
     @FXML
-    private TextField metricField;
+    private ComboBox<String> metricCombo;
     
     @FXML
     private ComboBox<String> operatorCombo;
@@ -59,13 +63,18 @@ public class RuleController {
     
     @FXML
     private ComboBox<String> durationUnitCombo;
+
+    @FXML
+    private Button backButton;
     
     private User currentUser;
     private RuleDAO ruleDAO;
+    private RuleEvaluationService ruleEvaluationService;
     private ObservableList<Rule> ruleData;
     
     public RuleController() {
         this.ruleDAO = new RuleDAO();
+        this.ruleEvaluationService = new RuleEvaluationService();
         this.ruleData = FXCollections.observableArrayList();
     }
     
@@ -96,7 +105,7 @@ public class RuleController {
         ));
         
         resourceTypeCombo.setItems(FXCollections.observableArrayList(
-            "EC2", "RDS", "ECS", "SageMaker"
+            "EC2", "S3", "SQS", "ALB"
         ));
         
         actionTypeCombo.setItems(FXCollections.observableArrayList(
@@ -111,6 +120,58 @@ public class RuleController {
             "minutes", "hours", "days"
         ));
         durationUnitCombo.setValue("hours"); // Default to hours
+
+        resourceTypeCombo.valueProperty().addListener((obs, oldV, newV) -> {
+            updateMetricOptions(newV);
+        });
+
+        metricCombo.valueProperty().addListener((obs, oldV, newV) -> {
+            updateOperatorOptions(newV);
+        });
+
+        updateMetricOptions(resourceTypeCombo.getValue());
+    }
+
+    private void updateMetricOptions(String resourceType) {
+        if (resourceType == null) {
+            metricCombo.setItems(FXCollections.observableArrayList());
+            metricCombo.setValue(null);
+            return;
+        }
+
+        switch (resourceType) {
+            case "EC2":
+                metricCombo.setItems(FXCollections.observableArrayList("CPUUtilization", "NetworkIn", "NetworkOut"));
+                break;
+            case "S3":
+                metricCombo.setItems(FXCollections.observableArrayList("ObjectCount", "TotalSizeGB", "IsPublic"));
+                break;
+            case "SQS":
+                metricCombo.setItems(FXCollections.observableArrayList("MessageCount", "DelayedMessageCount", "TotalMessages"));
+                break;
+            case "ALB":
+                metricCombo.setItems(FXCollections.observableArrayList("RequestCount"));
+                break;
+            default:
+                metricCombo.setItems(FXCollections.observableArrayList());
+        }
+
+        metricCombo.setValue(null);
+        updateOperatorOptions(null);
+    }
+
+    private void updateOperatorOptions(String metric) {
+        if ("IsPublic".equals(metric)) {
+            operatorCombo.setItems(FXCollections.observableArrayList("="));
+            operatorCombo.setValue("=");
+            valueField.setPromptText("0 for private, 1 for public");
+        } else {
+            operatorCombo.setItems(FXCollections.observableArrayList("<", ">", "=", "<=", ">="));
+            if (operatorCombo.getValue() == null) {
+                operatorCombo.setValue(">=");
+            }
+            valueField.setPromptText("e.g., 5.0");
+        }
     }
     
     @FXML
@@ -140,9 +201,18 @@ public class RuleController {
             rule.setRuleType(ruleTypeCombo.getValue());
             rule.setResourceType(resourceTypeCombo.getValue());
             rule.setActionType(actionTypeCombo.getValue());
-            rule.setConditionMetric(metricField.getText());
+            rule.setConditionMetric(metricCombo.getValue());
             rule.setConditionOperator(operatorCombo.getValue());
             rule.setConditionValue(Double.parseDouble(valueField.getText()));
+
+            if (rule.getRuleName() == null || rule.getRuleName().isBlank()) {
+                showError("Rule name is required.");
+                return;
+            }
+            if (rule.getResourceType() == null || rule.getConditionMetric() == null || rule.getConditionOperator() == null) {
+                showError("Resource, metric, and operator are required.");
+                return;
+            }
             
             // Store duration and unit as-is
             int duration = Integer.parseInt(durationField.getText());
@@ -166,6 +236,16 @@ public class RuleController {
         } catch (Exception e) {
             System.err.println("Error creating rule: " + e.getMessage());
             showError("Error creating rule: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleRunRulesNow() {
+        try {
+            int created = ruleEvaluationService.evaluateAllRules();
+            showInfo("Rule evaluation completed. Alerts created: " + created);
+        } catch (Exception e) {
+            showError("Failed to evaluate rules: " + e.getMessage());
         }
     }
     
@@ -209,13 +289,29 @@ public class RuleController {
             }
         }
     }
+
+    @FXML
+    private void handleBackToDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 820);
+            DashboardController ctrl = loader.getController();
+            ctrl.setCurrentUser(currentUser);
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance Dashboard - " + currentUser.getUsername());
+            stage.show();
+        } catch (Exception e) {
+            showError("Error returning to dashboard: " + e.getMessage());
+        }
+    }
     
     private void clearForm() {
         ruleNameField.clear();
         ruleTypeCombo.setValue(null);
         resourceTypeCombo.setValue(null);
         actionTypeCombo.setValue(null);
-        metricField.clear();
+        metricCombo.setValue(null);
         operatorCombo.setValue(null);
         valueField.clear();
         durationField.clear();

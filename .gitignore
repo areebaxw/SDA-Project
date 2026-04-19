@@ -2,6 +2,7 @@
 *credentials*.sql
 update_aws_credentials.sql
 AWS_SETUP_GUIDE.md
+src/main/resources/credentials.properties
 
 # IDE files
 .vscode/
