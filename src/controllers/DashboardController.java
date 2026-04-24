@@ -30,12 +30,10 @@ public class DashboardController {
     @FXML private Button btnMenuToggle;
     @FXML private VBox drawerPane;
     @FXML private Pane drawerOverlay;
-    @FXML private Label welcomeLabel;
     @FXML private Label roleBadge;
     @FXML private Label drawerUsername;
     @FXML private Label drawerRole;
 
-    @FXML private Label userCountLabel;
     @FXML private Label credStatusLabel;
     @FXML private Label ec2Label;
     @FXML private Label s3Label;
@@ -307,10 +305,11 @@ public class DashboardController {
     }
 
     private void populateTopBar() {
-        welcomeLabel.setText("Welcome, " + currentUser.getFullName());
-        roleBadge.setText(currentUser.getRole());
-        boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
-        roleBadge.getStyleClass().setAll(isAdmin ? "badge-success" : "badge-warning");
+        if (roleBadge != null) {
+            roleBadge.setText(currentUser.getRole());
+            boolean isAdmin = "admin".equalsIgnoreCase(currentUser.getRole());
+            roleBadge.getStyleClass().setAll(isAdmin ? "badge-success" : "badge-warning");
+        }
 
         if (drawerUsername != null) {
             drawerUsername.setText(currentUser.getUsername());
@@ -321,8 +320,6 @@ public class DashboardController {
     }
 
     private void populateStatBar() {
-        userCountLabel.setText(String.valueOf(queryInt("SELECT COUNT(*) FROM users")));
-
         AWSCredential cred = awsCredentialDAO.getActiveCredentials(currentUser.getUserId());
         if (cred != null) {
             credStatusLabel.setText("Saved");

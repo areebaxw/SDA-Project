@@ -1,47 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="controllers.S3Controller" spacing="15">
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.S3Controller"
+      styleClass="monitor-root monitor-root-s3">
 
-    <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
-    </padding>
+    <stylesheets>
+        <URL value="@../css/styles.css"/>
+    </stylesheets>
 
-    <HBox alignment="CENTER_LEFT" spacing="15">
-        <Label text="S3 Buckets Monitor" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
-        <Region HBox.hgrow="ALWAYS"/>
+    <BorderPane styleClass="monitor-shell">
+        <top>
+            <VBox spacing="14" styleClass="monitor-top">
+                <HBox alignment="CENTER_LEFT" spacing="16" styleClass="monitor-hero" style="-fx-background-color: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.92));">
+                    <VBox spacing="4">
+                        <Label text="S3 Buckets" styleClass="monitor-title"/>
+                        <Label text="Review bucket posture, storage footprint, and activity signals with one streamlined view." styleClass="monitor-subtitle" wrapText="true"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="backButton" text="← Back to Dashboard" onAction="#handleBackToDashboard" styleClass="monitor-btn-muted"/>
+                </HBox>
 
-        <Button fx:id="backButton" text="Back to Dashboard" onAction="#handleBackToDashboard"
-                style="-fx-background-color: #6B7280; -fx-text-fill: white;"/>
+                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="monitor-controls">
+                    <Button text="Refresh" onAction="#handleRefresh" styleClass="monitor-btn-accent"/>
+                    <Button text="Sync from AWS" onAction="#handleSyncFromAWS" styleClass="monitor-btn-warm"/>
+                </HBox>
+            </VBox>
+        </top>
 
-        <Button text="Refresh" onAction="#handleRefresh"
-                style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <center>
+            <VBox spacing="12" styleClass="monitor-content" BorderPane.alignment="CENTER">
+                <VBox spacing="12" styleClass="monitor-table-panel" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Bucket Inventory" styleClass="monitor-panel-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Region, size, and exposure overview" styleClass="monitor-panel-hint"/>
+                    </HBox>
 
-        <Button text="Sync from AWS" onAction="#handleSyncFromAWS"
-                style="-fx-background-color: #FF9900; -fx-text-fill: white;"/>
-    </HBox>
+                    <TableView fx:id="s3Table" VBox.vgrow="ALWAYS" styleClass="monitor-table">
+                        <columns>
+                            <TableColumn fx:id="bucketNameColumn" text="Bucket Name" prefWidth="250"/>
+                            <TableColumn fx:id="regionColumn" text="Region" prefWidth="150"/>
+                            <TableColumn fx:id="objectCountColumn" text="Object Count" prefWidth="140"/>
+                            <TableColumn fx:id="sizeColumn" text="Total Size (GB)" prefWidth="140"/>
+                            <TableColumn fx:id="publicColumn" text="Public" prefWidth="110"/>
+                            <TableColumn fx:id="idleColumn" text="Idle" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                </VBox>
 
-    <Separator/>
-
-    <TableView fx:id="s3Table" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="bucketNameColumn" text="Bucket Name" prefWidth="220"/>
-            <TableColumn fx:id="regionColumn" text="Region" prefWidth="120"/>
-            <TableColumn fx:id="objectCountColumn" text="Object Count" prefWidth="120"/>
-            <TableColumn fx:id="sizeColumn" text="Total Size (GB)" prefWidth="120"/>
-            <TableColumn fx:id="publicColumn" text="Public" prefWidth="90"/>
-            <TableColumn fx:id="idleColumn" text="Idle" prefWidth="80"/>
-        </columns>
-    </TableView>
-
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Actions:" style="-fx-font-weight: bold; -fx-text-fill: #ED7D27;"/>
-        <Button text="Delete Bucket" onAction="#handleDeleteBucket"
-                style="-fx-background-color: #F44336; -fx-text-fill: white;"/>
-    </HBox>
-
-</VBox>
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="monitor-action-bar">
+                    <Label text="Actions" styleClass="monitor-action-label"/>
+                    <Button text="Delete Bucket" onAction="#handleDeleteBucket" styleClass="monitor-btn-danger"/>
+                </HBox>
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>

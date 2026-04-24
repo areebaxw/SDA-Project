@@ -1,5 +1,7 @@
 package controllers;
 
+import dao.BillingDAO;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -8,12 +10,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.PieChart;
 import javafx.scene.Scene;
+import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import models.User;
 import models.BillingRecord;
 import aws.BillingService;
 import aws.AWSClientFactory;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -50,6 +54,7 @@ public class BillingController {
     
     private User currentUser;
     private BillingService billingService;
+    private final BillingDAO billingDAO = new BillingDAO();
     private ObservableList<BillingRecord> billingData;
     
     public BillingController() {
@@ -60,6 +65,7 @@ public class BillingController {
     @FXML
     private void initialize() {
         setupTableColumns();
+        setupTableScrollSensitivity();
         setupDatePickers();
         loadBillingRecords();
     }
@@ -94,6 +100,25 @@ public class BillingController {
         
         billingTable.setItems(billingData);
     }
+
+    private void setupTableScrollSensitivity() {
+        Platform.runLater(() -> billingTable.addEventFilter(ScrollEvent.SCROLL, event -> {
+            ScrollBar verticalBar = (ScrollBar) billingTable.lookup(".scroll-bar:vertical");
+            if (verticalBar == null || !verticalBar.isVisible()) {
+                return;
+            }
+
+            double direction = event.getDeltaY() < 0 ? 1.0 : -1.0;
+            double step = Math.max(verticalBar.getVisibleAmount() * 0.45, 0.02) * 2.2;
+            double newValue = clamp(verticalBar.getValue() + (direction * step), verticalBar.getMin(), verticalBar.getMax());
+            verticalBar.setValue(newValue);
+            event.consume();
+        }));
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
     
     private void setupDatePickers() {
         // Set default date range to current month minus 2 days (AWS Cost Explorer has 24-48 hour delay)
@@ -115,22 +140,41 @@ public class BillingController {
     
     private void loadBillingRecords() {
         if (currentUser == null) return;
+
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
+
+        if (startDate == null || endDate == null) {
+            showError("Please select a valid start and end date.");
+            return;
+        }
+
+        if (startDate.isAfter(endDate)) {
+            showError("Start date cannot be after end date.");
+            return;
+        }
         
         if (!AWSClientFactory.getInstance().isInitialized()) {
-            showError("AWS credentials not configured. Please configure your AWS credentials first.");
+            loadBillingRecordsFromDatabase(startDate, endDate);
+            if (billingData.isEmpty()) {
+                showError("AWS credentials not configured and no saved billing records were found for this range.");
+            }
             return;
         }
         
         try {
-            LocalDate startDate = startDatePicker.getValue();
-            LocalDate endDate = endDatePicker.getValue();
-            
             System.out.println("Loading billing records from AWS for date range: " + startDate + " to " + endDate);
             
             // Fetch actual cost data directly from AWS Cost Explorer
             List<BillingRecord> records = billingService.getCostAndUsage(startDate, endDate, currentUser.getUserId());
             
             System.out.println("Received " + records.size() + " records from AWS");
+
+            if (records.isEmpty()) {
+                System.out.println("No AWS records returned. Falling back to local billing_records table.");
+                loadBillingRecordsFromDatabase(startDate, endDate);
+                return;
+            }
             
             billingData.clear();
             billingData.addAll(records);
@@ -154,6 +198,26 @@ public class BillingController {
             e.printStackTrace();
             showError("Error loading billing records from AWS: " + e.getMessage() + "\nNote: AWS Cost Explorer may have a 24-48 hour delay.");
         }
+    }
+
+    private void loadBillingRecordsFromDatabase(LocalDate startDate, LocalDate endDate) {
+        List<BillingRecord> dbRecords = billingDAO.getBillingRecordsByDateRange(
+                currentUser.getUserId(),
+                Date.valueOf(startDate),
+                Date.valueOf(endDate)
+        );
+
+        billingData.clear();
+        billingData.addAll(dbRecords);
+
+        double totalCost = 0.0;
+        for (BillingRecord record : dbRecords) {
+            totalCost += record.getCostAmount();
+        }
+
+        totalCostLabel.setText(String.format("$%.4f", totalCost));
+        updateCostChartFromRecords(dbRecords);
+        System.out.println("Loaded " + dbRecords.size() + " billing records from local database.");
     }
     
     private void updateCostChartFromRecords(List<BillingRecord> records) {

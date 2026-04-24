@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="820.0" prefWidth="1280.0" styleClass="super-admin-root" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.SuperAdminController">
+   <stylesheets>
+      <URL value="@../css/styles.css" />
+   </stylesheets>
+   <children>
+      <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" styleClass="super-admin-header">
+               <padding>
+                  <Insets bottom="18.0" left="34.0" right="34.0" top="18.0" />
+               </padding>
+               <children>
+                  <VBox spacing="2.0">
+                     <children>
+                        <Label styleClass="super-admin-brand" text="AWS Governance Console" />
+                        <Label styleClass="super-admin-subtitle" text="Super Admin Control Center" />
+                     </children>
+                  </VBox>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleLogout" styleClass="super-admin-ghost-button" text="Logout">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Button>
+               </children>
+            </HBox>
+            <VBox spacing="18.0" styleClass="super-admin-content" VBox.vgrow="ALWAYS">
+               <padding>
+                  <Insets bottom="26.0" left="34.0" right="34.0" top="28.0" />
+               </padding>
+               <children>
+                  <HBox spacing="14.0">
+                     <children>
+                        <StackPane styleClass="super-admin-metric-card" HBox.hgrow="ALWAYS">
+                           <children>
+                              <VBox alignment="CENTER_LEFT" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="super-admin-metric-label" text="TOTAL USERS" />
+                                    <Label fx:id="totalUsersValueLabel" styleClass="super-admin-metric-value" text="0" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="16.0" left="18.0" right="18.0" top="16.0" />
+                           </padding>
+                        </StackPane>
+                        <StackPane styleClass="super-admin-metric-card-alt" HBox.hgrow="ALWAYS">
+                           <children>
+                              <VBox alignment="CENTER_LEFT" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="super-admin-metric-label" text="ADMINS" />
+                                    <Label fx:id="adminsValueLabel" styleClass="super-admin-metric-value" text="0" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="16.0" left="18.0" right="18.0" top="16.0" />
+                           </padding>
+                        </StackPane>
+                        <StackPane styleClass="super-admin-metric-card-muted" HBox.hgrow="ALWAYS">
+                           <children>
+                              <VBox alignment="CENTER_LEFT" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="super-admin-metric-label" text="CREDENTIALS CONFIGURED" />
+                                    <Label fx:id="configuredValueLabel" styleClass="super-admin-metric-value" text="0" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="16.0" left="18.0" right="18.0" top="16.0" />
+                           </padding>
+                        </StackPane>
+                     </children>
+                  </HBox>
+                  <VBox spacing="14.0" styleClass="super-admin-panel" VBox.vgrow="ALWAYS">
+                     <padding>
+                        <Insets bottom="18.0" left="18.0" right="18.0" top="16.0" />
+                     </padding>
+                     <children>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <VBox spacing="3.0">
+                                 <children>
+                                    <Label styleClass="super-admin-section-title" text="Registered Users" />
+                                    <Label styleClass="super-admin-section-subtitle" text="Manage platform access and remove inactive accounts" />
+                                 </children>
+                              </VBox>
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Label styleClass="super-admin-chip" text="Live View" />
+                           </children>
+                        </HBox>
+                        <Separator />
+                        <TableView fx:id="usersTable" styleClass="super-admin-table" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="idColumn" prefWidth="100.0" text="User ID" />
+                            <TableColumn fx:id="usernameColumn" prefWidth="250.0" text="Username" />
+                            <TableColumn fx:id="emailColumn" prefWidth="360.0" text="Email Address" />
+                            <TableColumn fx:id="roleColumn" prefWidth="170.0" text="Role" />
+                            <TableColumn fx:id="credentialsConfiguredColumn" prefWidth="230.0" text="Credentials Status" />
+                          </columns>
+                        </TableView>
+                        <HBox alignment="CENTER_RIGHT">
+                           <children>
+                              <Button fx:id="deleteUserButton" disable="true" mnemonicParsing="false" onAction="#handleDeleteUser" styleClass="super-admin-danger-button" text="Delete Selected User">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                                 <padding>
+                                    <Insets bottom="11.0" left="22.0" right="22.0" top="11.0" />
+                                 </padding>
+                              </Button>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

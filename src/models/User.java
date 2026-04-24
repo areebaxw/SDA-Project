@@ -15,6 +15,7 @@ public class User {
     private String role;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
+    private boolean hasCredentials; // For Super Admin Dashboard
     
     // Constructors
     public User() {}
@@ -97,6 +98,14 @@ public class User {
         this.lastLogin = lastLogin;
     }
     
+    public boolean isHasCredentials() {
+        return hasCredentials;
+    }
+
+    public void setHasCredentials(boolean hasCredentials) {
+        this.hasCredentials = hasCredentials;
+    }
+
     @Override
     public String toString() {
         return "User{" +

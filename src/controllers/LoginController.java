@@ -70,6 +70,12 @@ public class LoginController {
             showError("Please enter your username and password.");
             return;
         }
+        
+        // Super Admin Hardcoded Bypass
+        if ("admin".equals(username) && "admin".equals(password)) {
+            openSuperAdminDashboard();
+            return;
+        }
 
         User user;
         try {
@@ -126,6 +132,23 @@ public class LoginController {
         } catch (Exception ex) {
             ex.printStackTrace();
             showError("Error opening dashboard.");
+        }
+    }
+    
+    private void openSuperAdminDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/views/super_admin_dashboard.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 820);
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("AWS Governance - Super Admin Dashboard");
+            stage.setMinWidth(900);
+            stage.setMinHeight(600);
+            stage.show();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showError("Error opening super admin dashboard.");
         }
     }
 

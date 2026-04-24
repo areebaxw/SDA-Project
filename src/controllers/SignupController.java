@@ -67,6 +67,10 @@ public class SignupController {
             showError("Passwords do not match.");
             return;
         }
+        if ("admin".equalsIgnoreCase(username)) {
+            showError("Username 'admin' is reserved for Super Admin.");
+            return;
+        }
         if (userDAO.usernameExists(username)) {
             showError("Username already taken. Choose another.");
             return;

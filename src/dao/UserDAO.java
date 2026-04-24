@@ -209,4 +209,40 @@ public class UserDAO {
         }
         return false;
     }
+
+    /**
+     * Get all users with their AWS credential configuration status (for Super Admin)
+     */
+    public java.util.List<User> getAllUsersWithCredentialStatus() {
+        java.util.List<User> users = new java.util.ArrayList<>();
+        Connection connection = conn();
+        if (connection == null) return users;
+        
+        // Use a LEFT JOIN on aws_credentials to see if they hold a record.
+        String query = "SELECT u.user_id, u.username, u.email, u.full_name, u.role, "
+                     + "(CASE WHEN c.credential_id IS NOT NULL THEN 1 ELSE 0 END) as has_credentials "
+                     + "FROM users u LEFT JOIN aws_credentials c ON u.user_id = c.user_id "
+                     + "GROUP BY u.user_id, u.username, u.email, u.full_name, u.role";
+                     
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setFullName(rs.getString("full_name"));
+                user.setRole(rs.getString("role"));
+                
+                boolean hasCreds = rs.getInt("has_credentials") > 0;
+                user.setHasCredentials(hasCreds);
+                
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all users: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
 }

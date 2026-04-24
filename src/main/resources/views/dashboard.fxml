@@ -16,19 +16,13 @@
             <VBox>
                 <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
                     <Button fx:id="btnMenuToggle" text="☰" styleClass="hamburger-btn" onAction="#handleDrawerToggle"/>
-                    <Label text="☁ AWS Cloud Governance" styleClass="dashboard-title"/>
+                    <Label text="AWS Cloud Governance" styleClass="dashboard-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="welcomeLabel" text="Welcome, User" styleClass="welcome-label"/>
                     <Separator orientation="VERTICAL"/>
                     <Label fx:id="roleBadge" text="admin" styleClass="badge-success"/>
                 </HBox>
 
                 <HBox styleClass="stat-bar" alignment="CENTER" spacing="12">
-                    <VBox styleClass="stat-card" alignment="CENTER">
-                        <Label fx:id="userCountLabel" text="—" styleClass="stat-value-accent"/>
-                        <Label text="Registered Users" styleClass="stat-label"/>
-                    </VBox>
-
                     <VBox styleClass="stat-card" alignment="CENTER">
                         <Label fx:id="credStatusLabel" text="—" styleClass="stat-value"/>
                         <Label text="AWS Credentials" styleClass="stat-label"/>
@@ -94,45 +88,42 @@
                             </HBox>
                         </VBox>
 
-                        <VBox styleClass="info-card" HBox.hgrow="ALWAYS" spacing="8">
-                            <Label text="🔑  AWS Credentials" styleClass="info-card-title"/>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Status:" styleClass="muted-label"/>
-                                <Label fx:id="credCardStatus" text="Not configured" styleClass="badge-warning"/>
+                        <VBox styleClass="info-card" HBox.hgrow="ALWAYS" spacing="10">
+                            <Label text="💰  Billing Reports" styleClass="info-card-title"/>
+                            <HBox spacing="24" alignment="CENTER">
+                                <VBox spacing="4" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                                    <Label fx:id="billMonthLabel" text="\$0.00" styleClass="stat-value-success" style="-fx-text-fill: #065F46;"/>
+                                    <Label text="This Month" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
+                                </VBox>
+                                <VBox spacing="4" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                                    <Label fx:id="billTotalLabel" text="\$0.00" styleClass="stat-value" style="-fx-text-fill: #111827;"/>
+                                    <Label text="All-Time Total" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
+                                </VBox>
+                                <VBox spacing="4" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                                    <Label fx:id="billRecordsLabel" text="0" styleClass="stat-value" style="-fx-text-fill: #111827;"/>
+                                    <Label text="Billing Records" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
+                                </VBox>
                             </HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Region:" styleClass="muted-label"/>
-                                <Label fx:id="credCardRegion" text="—" styleClass="white-label"/>
-                            </HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Validated:" styleClass="muted-label"/>
-                                <Label fx:id="credCardValidated" text="Pending" styleClass="badge-warning"/>
-                            </HBox>
-                            <Region minHeight="4"/>
-                            <Button text="Configure Now →" styleClass="secondary-button" onAction="#handleCredentials"/>
                         </VBox>
                     </HBox>
 
                     <VBox styleClass="info-card" spacing="10">
-                        <Label text="💰  Billing Reports" styleClass="info-card-title"/>
-                        <HBox spacing="50" alignment="CENTER_LEFT">
-                            <VBox spacing="4" alignment="CENTER">
-                                <Label fx:id="billMonthLabel" text="\$0.00" styleClass="stat-value-success" style="-fx-text-fill: #065F46;"/>
-                                <Label text="This Month" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
-                            </VBox>
-                            <VBox spacing="4" alignment="CENTER">
-                                <Label fx:id="billTotalLabel" text="\$0.00" styleClass="stat-value" style="-fx-text-fill: #111827;"/>
-                                <Label text="All-Time Total" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
-                            </VBox>
-                            <VBox spacing="4" alignment="CENTER">
-                                <Label fx:id="billRecordsLabel" text="0" styleClass="stat-value" style="-fx-text-fill: #111827;"/>
-                                <Label text="Billing Records" styleClass="stat-label" style="-fx-text-fill: #1E293B;"/>
-                            </VBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="🔑  AWS Credentials" styleClass="info-card-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="Configure Now →" styleClass="secondary-button" onAction="#handleCredentials"/>
                         </HBox>
-                        <HBox styleClass="status-strip-warning" spacing="8" alignment="CENTER_LEFT">
-                            <Label text="ℹ" styleClass="muted-label"/>
-                            <Label text="Modules enabled: Billing Reports, SQS Monitoring, S3 Monitoring, EC2 Monitoring, Alert Notifications, Idle Detection, ALB Monitoring."
-                                   styleClass="hint-label" wrapText="true"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Status:" styleClass="muted-label"/>
+                            <Label fx:id="credCardStatus" text="Not configured" styleClass="badge-warning"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Region:" styleClass="muted-label"/>
+                            <Label fx:id="credCardRegion" text="—" styleClass="white-label"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Validated:" styleClass="muted-label"/>
+                            <Label fx:id="credCardValidated" text="Pending" styleClass="badge-warning"/>
                         </HBox>
                     </VBox>
                 </VBox>
@@ -143,45 +134,51 @@
     <Pane fx:id="drawerOverlay" styleClass="drawer-overlay" visible="false" managed="false" onMouseClicked="#handleDrawerToggle"/>
 
     <VBox fx:id="drawerPane" styleClass="drawer" maxHeight="Infinity" maxWidth="260" StackPane.alignment="CENTER_LEFT" translateX="-260">
-        <VBox styleClass="drawer-header" alignment="CENTER" spacing="4">
-            <Label text="☁" styleClass="drawer-logo"/>
-            <Label text="AWS Governance" styleClass="drawer-brand"/>
-            <Label text="Monitoring Console" styleClass="drawer-brand-sub"/>
-        </VBox>
+        <ScrollPane styleClass="drawer-scroll" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <content>
+                <VBox maxWidth="260" styleClass="drawer-content">
+                    <VBox styleClass="drawer-header" alignment="CENTER" spacing="4">
+                        <Label text="☁" styleClass="drawer-logo"/>
+                        <Label text="AWS Governance" styleClass="drawer-brand"/>
+                        <Label text="Monitoring Console" styleClass="drawer-brand-sub"/>
+                    </VBox>
 
-        <HBox styleClass="drawer-user-chip" alignment="CENTER_LEFT" spacing="10">
-            <Label styleClass="drawer-avatar" text="👤"/>
-            <VBox spacing="1">
-                <Label fx:id="drawerUsername" text="User" styleClass="drawer-user-name"/>
-                <Label fx:id="drawerRole" text="admin" styleClass="drawer-user-role"/>
-            </VBox>
-        </HBox>
+                    <HBox styleClass="drawer-user-chip" alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="drawer-avatar" text="👤"/>
+                        <VBox spacing="1">
+                            <Label fx:id="drawerUsername" text="User" styleClass="drawer-user-name"/>
+                            <Label fx:id="drawerRole" text="admin" styleClass="drawer-user-role"/>
+                        </VBox>
+                    </HBox>
 
-        <Separator styleClass="drawer-divider"/>
-        <Label text="OVERVIEW" styleClass="drawer-section-label"/>
-        <Button fx:id="btnOverview" text="🏠   Dashboard" styleClass="drawer-nav-active" maxWidth="Infinity" onAction="#handleOverview"/>
+                    <Separator styleClass="drawer-divider"/>
+                    <Label text="OVERVIEW" styleClass="drawer-section-label"/>
+                    <Button fx:id="btnOverview" text="🏠   Dashboard" styleClass="drawer-nav-active" maxWidth="Infinity" onAction="#handleOverview"/>
 
-        <Label text="MONITORING" styleClass="drawer-section-label"/>
-        <Button fx:id="btnEC2" text="🖥   EC2 Instances" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleEC2"/>
-        <Button fx:id="btnS3" text="🗂   S3 Buckets" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleS3"/>
-        <Button fx:id="btnSQS" text="📬   SQS Queues" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleSQS"/>
-        <Button fx:id="btnALB" text="🌐   ALB" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleALB"/>
+                    <Label text="MONITORING" styleClass="drawer-section-label"/>
+                    <Button fx:id="btnEC2" text="🖥   EC2 Instances" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleEC2"/>
+                    <Button fx:id="btnS3" text="🗂   S3 Buckets" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleS3"/>
+                    <Button fx:id="btnSQS" text="📬   SQS Queues" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleSQS"/>
+                    <Button fx:id="btnALB" text="🌐   ALB" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleALB"/>
 
-        <Label text="GOVERNANCE" styleClass="drawer-section-label"/>
-        <Button fx:id="btnBilling" text="💰   Billing Reports" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleBilling"/>
-        <Button fx:id="btnRules" text="⚙   Rules" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleRules"/>
-        <Button fx:id="btnAlerts" text="🚨   Alerts" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleAlerts"/>
+                    <Label text="GOVERNANCE" styleClass="drawer-section-label"/>
+                    <Button fx:id="btnBilling" text="💰   Billing Reports" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleBilling"/>
+                    <Button fx:id="btnRules" text="⚙   Rules" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleRules"/>
+                    <Button fx:id="btnAlerts" text="🚨   Alerts" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleAlerts"/>
 
-        <Label text="ACCOUNT" styleClass="drawer-section-label"/>
-        <Button fx:id="btnCredentials" text="🔑   AWS Credentials" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleCredentials"/>
+                    <Label text="ACCOUNT" styleClass="drawer-section-label"/>
+                    <Button fx:id="btnCredentials" text="🔑   AWS Credentials" styleClass="drawer-nav" maxWidth="Infinity" onAction="#handleCredentials"/>
 
-        <Region VBox.vgrow="ALWAYS"/>
-        <Separator styleClass="drawer-divider"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <Separator styleClass="drawer-divider"/>
 
-        <VBox styleClass="drawer-footer" spacing="4">
-            <Button text="⟳   Refresh Data" styleClass="drawer-action-btn" maxWidth="Infinity" onAction="#handleRefresh"/>
-            <Button text="⎋   Logout" styleClass="drawer-logout-btn" maxWidth="Infinity" onAction="#handleLogout"/>
-        </VBox>
+                    <VBox styleClass="drawer-footer" spacing="4">
+                        <Button text="⟳   Refresh Data" styleClass="drawer-action-btn" maxWidth="Infinity" onAction="#handleRefresh"/>
+                        <Button text="⎋   Logout" styleClass="drawer-logout-btn" maxWidth="Infinity" onAction="#handleLogout"/>
+                    </VBox>
+                </VBox>
+            </content>
+        </ScrollPane>
     </VBox>
 
 </StackPane>
