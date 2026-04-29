@@ -2,11 +2,9 @@ package controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
 import models.User;
 import dao.UserDAO;
+import utils.SceneNavigator;
 import utils.Validator;
 
 /**
@@ -99,39 +97,15 @@ public class SignupController {
 
     @FXML
     private void handleBackToLogin() {
-        navigate("/views/login.fxml", "AWS Governance Tool – Login", 800, 620);
+        SceneNavigator.navigateTo("/views/login.fxml", "AWS Governance Tool \u2013 Login");
     }
 
-    /* ── Navigation helpers ──────────────────────── */
+    /* \u2500\u2500 Navigation helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
 
     private void openCredentials(User user) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/credentials.fxml"));
-            Scene scene = new Scene(loader.load(), 860, 680);
-            CredentialsController ctrl = loader.getController();
-            ctrl.setCurrentUser(user);
-            Stage stage = (Stage) signupButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool – Configure Credentials");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error opening credentials screen.");
-        }
-    }
-
-    private void navigate(String fxml, String title, int w, int h) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-            Scene scene = new Scene(loader.load(), w, h);
-            Stage stage = (Stage) signupButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle(title);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        SceneNavigator.navigateTo("/views/credentials.fxml",
+                "AWS Governance Tool \u2013 Configure Credentials",
+                (CredentialsController ctrl) -> ctrl.setCurrentUser(user));
     }
 
     /* ── UI helpers ──────────────────────────────── */

@@ -5,15 +5,12 @@ import aws.AWSClientFactory;
 import database.DBConnection;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.util.Duration;
+import utils.SceneNavigator;
 import models.AWSCredential;
 import models.User;
 
@@ -127,158 +124,58 @@ public class DashboardController {
 
     @FXML
     private void handleCredentials() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/credentials.fxml"));
-            Scene scene = new Scene(loader.load(), 860, 680);
-            CredentialsController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Credentials");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        SceneNavigator.navigateTo("/views/credentials.fxml",
+                "AWS Governance Tool - Credentials",
+                (CredentialsController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleEC2() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ec2.fxml"));
-            Scene scene = new Scene(loader.load(), 980, 700);
-            EC2Controller ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - EC2 Monitoring");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open EC2 Monitoring");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/ec2.fxml",
+                "AWS Governance Tool - EC2 Monitoring",
+                (EC2Controller ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleS3() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/s3.fxml"));
-            Scene scene = new Scene(loader.load(), 980, 700);
-            S3Controller ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - S3 Monitoring");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open S3 Monitoring");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/s3.fxml",
+                "AWS Governance Tool - S3 Monitoring",
+                (S3Controller ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleSQS() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/sqs.fxml"));
-            Scene scene = new Scene(loader.load(), 980, 700);
-            SQSController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - SQS Monitoring");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open SQS Monitoring");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/sqs.fxml",
+                "AWS Governance Tool - SQS Monitoring",
+                (SQSController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleALB() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/alb.fxml"));
-            Scene scene = new Scene(loader.load(), 980, 700);
-            ALBController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - ALB Monitoring");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open ALB Monitoring");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/alb.fxml",
+                "AWS Governance Tool - ALB Monitoring",
+                (ALBController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleBilling() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/billing.fxml"));
-            Scene scene = new Scene(loader.load(), 1100, 760);
-            BillingController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Billing Reports");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open Billing Reports");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/billing.fxml",
+                "AWS Governance Tool - Billing Reports",
+                (BillingController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleRules() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/rules.fxml"));
-            Scene scene = new Scene(loader.load(), 1100, 760);
-            RuleController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Rules");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open Rules");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/rules.fxml",
+                "AWS Governance Tool - Rules",
+                (RuleController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
     private void handleAlerts() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/alerts.fxml"));
-            Scene scene = new Scene(loader.load(), 1100, 760);
-            AlertController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Alerts");
-            stage.show();
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to open Alerts");
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
+        SceneNavigator.navigateTo("/views/alerts.fxml",
+                "AWS Governance Tool - Alerts",
+                (AlertController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     @FXML
@@ -290,18 +187,7 @@ public class DashboardController {
 
     @FXML
     private void handleLogout() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
-            Scene scene = new Scene(loader.load(), 800, 620);
-            Stage stage = (Stage) btnMenuToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Login");
-            stage.setMinWidth(600);
-            stage.setMinHeight(500);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        SceneNavigator.navigateTo("/views/login.fxml", "AWS Governance Tool - Login");
     }
 
     private void populateTopBar() {

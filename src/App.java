@@ -4,6 +4,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import database.DBConnection;
+import utils.SceneNavigator;
 
 
 public class App extends Application {
@@ -21,6 +22,7 @@ public class App extends Application {
             // Sprint 1 starts directly at the Login screen (no splash)
             Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
             Scene scene = new Scene(root, 800, 620);
+            SceneNavigator.setMainScene(scene);
 
             primaryStage.setTitle("AWS Cloud Governance - Monitoring Console");
             primaryStage.setScene(scene);

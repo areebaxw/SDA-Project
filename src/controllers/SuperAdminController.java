@@ -3,11 +3,9 @@ package controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
+import utils.SceneNavigator;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 import models.User;
 import dao.UserDAO;
 
@@ -112,15 +110,6 @@ public class SuperAdminController {
 
     @FXML
     private void handleLogout() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
-            Scene scene = new Scene(loader.load(), 800, 620);
-            Stage stage = (Stage) logoutButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool - Login");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        SceneNavigator.navigateTo("/views/login.fxml", "AWS Governance Tool - Login");
     }
 }

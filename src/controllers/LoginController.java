@@ -2,12 +2,10 @@ package controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
 import models.User;
 import dao.UserDAO;
 import dao.AWSCredentialDAO;
+import utils.SceneNavigator;
 import utils.Validator;
 
 /**
@@ -97,16 +95,19 @@ public class LoginController {
             hasCredentials = false;
         }
         if (hasCredentials) {
-            openDashboard(user);
+            SceneNavigator.navigateTo("/views/dashboard.fxml",
+                    "AWS Governance Dashboard – " + user.getUsername(),
+                    (DashboardController ctrl) -> ctrl.setCurrentUser(user));
         } else {
-            openCredentials(user);
+            SceneNavigator.navigateTo("/views/credentials.fxml",
+                    "AWS Governance Tool – Configure Credentials",
+                    (CredentialsController ctrl) -> ctrl.setCurrentUser(user));
         }
     }
 
     @FXML
     private void handleSignup() {
-        navigateTo("/views/signup.fxml", "AWS Governance Tool â€“ Sign Up",
-                   800, 680, null);
+        SceneNavigator.navigateTo("/views/signup.fxml", "AWS Governance Tool – Sign Up");
     }
 
     @FXML
@@ -114,76 +115,12 @@ public class LoginController {
         if (e.getCode() == javafx.scene.input.KeyCode.ENTER) handleLogin();
     }
 
-    /* â”€â”€ Navigation helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
-    private void openDashboard(User user) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/dashboard.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 820);
-            DashboardController ctrl = loader.getController();
-            ctrl.setCurrentUser(user);
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Dashboard â€“ " + user.getUsername());
-            stage.setMinWidth(900);
-            stage.setMinHeight(600);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error opening dashboard.");
-        }
-    }
-    
     private void openSuperAdminDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/super_admin_dashboard.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 820);
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance - Super Admin Dashboard");
-            stage.setMinWidth(900);
-            stage.setMinHeight(600);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error opening super admin dashboard.");
-        }
+        SceneNavigator.navigateTo("/views/super_admin_dashboard.fxml",
+                "AWS Governance - Super Admin Dashboard");
     }
 
-    private void openCredentials(User user) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/credentials.fxml"));
-            Scene scene = new Scene(loader.load(), 860, 680);
-            CredentialsController ctrl = loader.getController();
-            ctrl.setCurrentUser(user);
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Tool â€“ Configure Credentials");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error opening credentials screen.");
-        }
-    }
-
-    private void navigateTo(String fxml, String title, int w, int h, Object unused) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-            Scene scene = new Scene(loader.load(), w, h);
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle(title);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Navigation error.");
-        }
-    }
-
-    /* â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
     private void showError(String msg) {
         errorLabel.setText(msg);

@@ -5,10 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
 import aws.AWSClientFactory;
+import utils.SceneNavigator;
 import models.AWSCredential;
 import models.User;
 import dao.AWSCredentialDAO;
@@ -178,22 +176,9 @@ public class CredentialsController {
     /* ── Navigation ──────────────────────────────── */
 
     private void openDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/views/dashboard.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 820);
-            DashboardController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) saveButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Dashboard – " + currentUser.getUsername());
-            stage.setMinWidth(900);
-            stage.setMinHeight(600);
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error opening dashboard.");
-        }
+        SceneNavigator.navigateTo("/views/dashboard.fxml",
+                "AWS Governance Dashboard \u2013 " + currentUser.getUsername(),
+                (DashboardController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
 
     /* ── UI helpers ──────────────────────────────── */

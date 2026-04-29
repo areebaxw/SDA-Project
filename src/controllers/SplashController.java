@@ -4,10 +4,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.fxml.FXMLLoader;
 import javafx.animation.PauseTransition;
+import utils.SceneNavigator;
 import javafx.util.Duration;
 
 /**
@@ -47,21 +45,6 @@ public class SplashController {
     }
     
     private void openLoginScreen() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
-            Scene scene = new Scene(loader.load(), 900, 700);
-            
-            Stage stage = (Stage) loadingProgress.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Cloud Governance Tool - Login");
-            stage.setResizable(true);
-            stage.setMinWidth(800);
-            stage.setMinHeight(600);
-            stage.centerOnScreen();
-            stage.show();
-        } catch (Exception e) {
-            System.err.println("Error opening login screen: " + e.getMessage());
-            e.printStackTrace();
-        }
+        SceneNavigator.navigateTo("/views/login.fxml", "AWS Cloud Governance Tool - Login");
     }
 }

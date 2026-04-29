@@ -5,7 +5,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
 import models.User;
 import models.AWSCredential;
 import models.EC2Instance;
@@ -15,10 +14,9 @@ import aws.EC2Service;
 import aws.AWSClientFactory;
 import services.IdleDetectionService;
 import services.CombinedIdleStrategy;
+import utils.SceneNavigator;
 
 import java.util.List;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 
 /**
  * EC2Controller - Controller for EC2 instances view
@@ -300,18 +298,9 @@ public class EC2Controller {
 
     @FXML
     private void handleBackToDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 820);
-            DashboardController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Dashboard - " + currentUser.getUsername());
-            stage.show();
-        } catch (Exception e) {
-            showError("Error returning to dashboard: " + e.getMessage());
-        }
+        SceneNavigator.navigateTo("/views/dashboard.fxml",
+                "AWS Governance Dashboard - " + currentUser.getUsername(),
+                (DashboardController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
     
     private void showInfo(String message) {

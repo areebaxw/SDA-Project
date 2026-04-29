@@ -1,13 +1,11 @@
 package controllers;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import utils.SceneNavigator;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 import models.User;
 import models.Rule;
 import dao.RuleDAO;
@@ -292,18 +290,9 @@ public class RuleController {
 
     @FXML
     private void handleBackToDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 820);
-            DashboardController ctrl = loader.getController();
-            ctrl.setCurrentUser(currentUser);
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("AWS Governance Dashboard - " + currentUser.getUsername());
-            stage.show();
-        } catch (Exception e) {
-            showError("Error returning to dashboard: " + e.getMessage());
-        }
+        SceneNavigator.navigateTo("/views/dashboard.fxml",
+                "AWS Governance Dashboard - " + currentUser.getUsername(),
+                (DashboardController ctrl) -> ctrl.setCurrentUser(currentUser));
     }
     
     private void clearForm() {
